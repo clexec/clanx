@@ -76,54 +76,60 @@ struct ProfileView: View {
     }
 
     private var tokenSection: some View {
+        tokenSectionContent
+            .padding(16)
+            .background(glassBackground(radius: 20))
+    }
+
+    private var tokenSectionContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label("Яндекс Музыка", systemImage: "key.fill")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(Theme.textSecondary)
-
-            HStack(spacing: 10) {
-                SecureField("", text: $token,
-                    prompt: Text("Вставить токен").foregroundColor(Theme.textTertiary))
-                    .foregroundStyle(Theme.textPrimary)
-                    .font(.system(size: 14))
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-
-                Button {
-                    store.token = token
-                    UINotificationFeedbackGenerator().notificationOccurred(.success)
-                    withAnimation { tokenSaved = true }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                        withAnimation { tokenSaved = false }
-                    }
-                } label: {
-                    Image(systemName: tokenSaved ? "checkmark.circle.fill" : "arrow.right.circle.fill")
-                        .font(.system(size: 26))
-                        .foregroundStyle(tokenSaved ? Theme.accent : Theme.textSecondary)
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .overlay(RoundedRectangle(cornerRadius: 14).fill(Color.black.opacity(0.45)))
-                    .overlay(RoundedRectangle(cornerRadius: 14)
-                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1))
-            )
-
+            tokenInputRow
             Text("Токен нужен для воспроизведения реальных треков из Яндекс Музыки.")
                 .font(.system(size: 12))
                 .foregroundStyle(Theme.textTertiary)
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(RoundedRectangle(cornerRadius: 20).fill(Color.black.opacity(0.35)))
-                .overlay(RoundedRectangle(cornerRadius: 20)
-                    .strokeBorder(Color.white.opacity(0.07), lineWidth: 1))
-        )
+    }
+
+    private var tokenInputRow: some View {
+        HStack(spacing: 10) {
+            SecureField("Вставить токен", text: $token)
+                .foregroundStyle(Theme.textPrimary)
+                .font(.system(size: 14))
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+            saveTokenButton
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(glassBackground(radius: 14))
+    }
+
+    private var saveTokenButton: some View {
+        let iconName = tokenSaved ? "checkmark.circle.fill" : "arrow.right.circle.fill"
+        let color = tokenSaved ? Theme.accent : Theme.textSecondary
+        return Button {
+            store.token = token
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            withAnimation { tokenSaved = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation { tokenSaved = false }
+            }
+        } label: {
+            Image(systemName: iconName)
+                .font(.system(size: 26))
+                .foregroundStyle(color)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func glassBackground(radius: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: radius, style: .continuous)
+            .fill(.ultraThinMaterial)
+            .overlay(RoundedRectangle(cornerRadius: radius).fill(Color.black.opacity(0.4)))
+            .overlay(RoundedRectangle(cornerRadius: radius)
+                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1))
     }
 }
