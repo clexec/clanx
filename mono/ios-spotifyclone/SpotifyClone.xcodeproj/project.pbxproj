@@ -112,7 +112,6 @@
 			);
 			name = SpotifyClone;
 			packageProductDependencies = (
-				AB0000000000000000000002 /* LiquidGlassKit */,
 			);
 			productName = SpotifyClone;
 			productReference = 105FC57A2E9EAD3100EA8BCF /* SpotifyClone.app */;
@@ -268,25 +267,6 @@
 			targetProxy = 105FC5942E9EAD3200EA8BCF /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		AB0000000000000000000001 /* XCRemoteSwiftPackageReference "LiquidGlassKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/DnV1eX/LiquidGlassKit.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		AB0000000000000000000002 /* LiquidGlassKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = AB0000000000000000000001 /* XCRemoteSwiftPackageReference "LiquidGlassKit" */;
-			productName = LiquidGlassKit;
-		};
-/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		105FC59B2E9EAD3200EA8BCF /* Debug */ = {
