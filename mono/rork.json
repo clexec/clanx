@@ -1,0 +1,11 @@
+{
+    "apps": [
+      {
+        "name": "SpotifyClone",
+        "path": "ios-spotifyclone",
+        "framework": "swift"
+      }
+    ],
+    "$schema": "https://rork.com/schema/rork.json"
+  }
+  
