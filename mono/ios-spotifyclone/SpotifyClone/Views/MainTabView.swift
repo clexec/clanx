@@ -1,30 +1,26 @@
-//
-//  MainTabView.swift
-//  SpotifyClone
-//
-//  Root navigation shell: Home / Search / Library tabs with a custom
-//  liquid-glass tab bar, a floating mini-player and the full-screen player.
-//
-
 import SwiftUI
 
 enum AppTab: Int, CaseIterable, Identifiable {
-    case home, search, library
+    case home, favorites, create, profile, search
     var id: Int { rawValue }
 
     var title: String {
         switch self {
-        case .home: return "Home"
-        case .search: return "Search"
-        case .library: return "Your Library"
+        case .home:      return "Главная"
+        case .favorites: return "Избранное"
+        case .create:    return "Создать"
+        case .profile:   return "Профиль"
+        case .search:    return ""
         }
     }
 
     var icon: String {
         switch self {
-        case .home: return "house.fill"
-        case .search: return "magnifyingglass"
-        case .library: return "books.vertical.fill"
+        case .home:      return "house.fill"
+        case .favorites: return "heart.fill"
+        case .create:    return "plus"
+        case .profile:   return "person.fill"
+        case .search:    return "magnifyingglass"
         }
     }
 }
@@ -32,88 +28,156 @@ enum AppTab: Int, CaseIterable, Identifiable {
 struct MainTabView: View {
     @State private var selectedTab: AppTab = .home
     @State private var showPlayer = false
+    @State private var showCreate = false
     private let player = AudioPlayer.shared
 
     var body: some View {
         ZStack(alignment: .bottom) {
             Theme.background.ignoresSafeArea()
 
-            // Active tab content.
             Group {
                 switch selectedTab {
-                case .home: HomeView()
-                case .search: SearchView()
-                case .library: LibraryView()
+                case .home:      HomeView()
+                case .favorites: LibraryView()
+                case .create:    HomeView()
+                case .profile:   ProfileView()
+                case .search:    SearchView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Floating mini-player + tab bar stack.
             VStack(spacing: 8) {
                 if player.currentTrack != nil {
                     MiniPlayerView { showPlayer = true }
                         .padding(.horizontal, 10)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                LiquidGlassTabBar(selectedTab: $selectedTab)
+                CustomTabBar(selectedTab: $selectedTab, onCreateTap: { showCreate = true })
             }
             .padding(.bottom, 4)
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: player.currentTrack?.id)
-        .fullScreenCover(isPresented: $showPlayer) {
-            PlayerView()
-        }
+        .fullScreenCover(isPresented: $showPlayer) { PlayerView() }
+        .sheet(isPresented: $showCreate) { CreateTrackView() }
     }
 }
 
-/// Custom tab bar rendered on a liquid-glass surface.
-struct LiquidGlassTabBar: View {
+struct CustomTabBar: View {
     @Binding var selectedTab: AppTab
+    let onCreateTap: () -> Void
+    @Namespace private var ns
 
     var body: some View {
         HStack(spacing: 0) {
             ForEach(AppTab.allCases) { tab in
-                tabButton(tab)
+                if tab == .create {
+                    createButton
+                } else if tab == .search {
+                    searchButton
+                } else {
+                    regularTab(tab)
+                }
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 10)
-        .background(LiquidGlassBackground(cornerRadius: 30, tint: Theme.accent))
-        .clipShape(.rect(cornerRadius: 30))
-        .shadow(color: .black.opacity(0.4), radius: 16, y: 6)
-        .padding(.horizontal, 28)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 36, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 36, style: .continuous)
+                        .fill(Color.black.opacity(0.55))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 36, style: .continuous)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [.white.opacity(0.18), .white.opacity(0.04)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            ), lineWidth: 1
+                        )
+                )
+        )
+        .shadow(color: .black.opacity(0.5), radius: 20, y: 8)
+        .padding(.horizontal, 20)
     }
 
-    private func tabButton(_ tab: AppTab) -> some View {
+    private func regularTab(_ tab: AppTab) -> some View {
         let isSelected = selectedTab == tab
         return Button {
-            let generator = UIImpactFeedbackGenerator(style: .soft)
-            generator.impactOccurred()
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
-                selectedTab = tab
-            }
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { selectedTab = tab }
+            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: 3) {
                 Image(systemName: tab.icon)
-                    .font(.system(size: 20, weight: .semibold))
-                    .symbolEffect(.bounce, value: isSelected)
+                    .font(.system(size: 20, weight: isSelected ? .bold : .regular))
+                    .foregroundStyle(isSelected ? Theme.accent : .white.opacity(0.55))
                 Text(tab.title)
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(isSelected ? Theme.accent : .white.opacity(0.55))
                     .lineLimit(1)
             }
-            .foregroundStyle(isSelected ? Theme.accentBright : Theme.textSecondary)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 6)
+            .padding(.vertical, 8)
             .background {
                 if isSelected {
-                    Capsule()
-                        .fill(Theme.accent.opacity(0.16))
-                        .matchedGeometryEffect(id: "tabHighlight", in: namespace)
+                    Circle()
+                        .fill(Color.white.opacity(0.1))
+                        .frame(width: 52, height: 52)
+                        .matchedGeometryEffect(id: "sel", in: ns)
                 }
             }
         }
         .buttonStyle(.plain)
     }
 
-    @Namespace private var namespace
+    private var createButton: some View {
+        Button {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            onCreateTap()
+        } label: {
+            VStack(spacing: 3) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Theme.accent, Theme.accent.opacity(0.7)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 38, height: 38)
+                        .shadow(color: Theme.accent.opacity(0.5), radius: 8)
+                    Image(systemName: "plus")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(.black)
+                }
+                Text("Создать")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.55))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 5)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var searchButton: some View {
+        let isSelected = selectedTab == .search
+        return Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { selectedTab = .search }
+            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+        } label: {
+            ZStack {
+                Circle()
+                    .fill(isSelected ? Color.white.opacity(0.12) : Color.clear)
+                    .frame(width: 48, height: 48)
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(isSelected ? Theme.accent : .white.opacity(0.7))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 5)
+        }
+        .buttonStyle(.plain)
+    }
 }

@@ -9,15 +9,16 @@
 import SwiftUI
 
 private enum LibraryFilter: String, CaseIterable, Identifiable {
-    case playlists = "Playlists"
-    case artists = "Artists"
-    case albums = "Albums"
-    case liked = "Liked Songs"
+    case liked = "Треки"
+    case userTracks = "Мои треки"
+    case playlists = "Плейлисты"
+    case albums = "Альбомы"
+    case artists = "Артисты"
     var id: String { rawValue }
 }
 
 struct LibraryView: View {
-    @State private var filter: LibraryFilter = .playlists
+    @State private var filter: LibraryFilter = .liked
     private let store = LibraryStore.shared
     private let player = AudioPlayer.shared
 
@@ -28,10 +29,11 @@ struct LibraryView: View {
                     filterChips
 
                     switch filter {
-                    case .playlists: playlistList
-                    case .artists: artistList
-                    case .albums: albumList
-                    case .liked: likedList
+                    case .liked:      likedList
+                    case .userTracks: userTracksList
+                    case .playlists:  playlistList
+                    case .albums:     albumList
+                    case .artists:    artistList
                     }
 
                     Color.clear.frame(height: 140)
@@ -39,10 +41,10 @@ struct LibraryView: View {
                 .padding(.top, 8)
             }
             .background(Theme.background.ignoresSafeArea())
-            .navigationTitle("Your Library")
-            .navigationDestination(for: Album.self) { AlbumDetailView(album: $0) }
+            .navigationTitle("Избранное")
+            .navigationDestination(for: Album.self)    { AlbumDetailView(album: $0) }
             .navigationDestination(for: Playlist.self) { PlaylistDetailView(playlist: $0) }
-            .navigationDestination(for: Artist.self) { ArtistDetailView(artist: $0) }
+            .navigationDestination(for: Artist.self)   { ArtistDetailView(artist: $0) }
         }
     }
 
@@ -69,10 +71,46 @@ struct LibraryView: View {
         }
     }
 
+    private var likedList: some View {
+        Group {
+            if store.likedTracks.isEmpty {
+                emptyState("Лайкай треки — они появятся здесь")
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(store.likedTracks) { track in
+                        TrackRow(track: track) {
+                            store.markPlayed(track)
+                            player.play(track, in: store.likedTracks)
+                        }
+                        .padding(.horizontal, 16)
+                    }
+                }
+            }
+        }
+    }
+
+    private var userTracksList: some View {
+        Group {
+            if store.userTracks.isEmpty {
+                emptyState("Загруженные тобой треки появятся здесь")
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(store.userTracks) { track in
+                        TrackRow(track: track) {
+                            store.markPlayed(track)
+                            player.play(track, in: store.userTracks)
+                        }
+                        .padding(.horizontal, 16)
+                    }
+                }
+            }
+        }
+    }
+
     private var playlistList: some View {
         Group {
             if store.savedPlaylists.isEmpty {
-                emptyState("Save playlists to see them here")
+                emptyState("Сохранённые плейлисты появятся здесь")
             } else {
                 VStack(spacing: 4) {
                     ForEach(store.savedPlaylists) { pl in
@@ -91,7 +129,7 @@ struct LibraryView: View {
     private var artistList: some View {
         Group {
             if store.savedArtists.isEmpty {
-                emptyState("Follow artists to see them here")
+                emptyState("Подпишись на артистов чтобы видеть их здесь")
             } else {
                 VStack(spacing: 4) {
                     ForEach(store.savedArtists) { artist in
@@ -110,7 +148,7 @@ struct LibraryView: View {
     private var albumList: some View {
         Group {
             if store.savedAlbums.isEmpty {
-                emptyState("Save albums to see them here")
+                emptyState("Сохранённые альбомы появятся здесь")
             } else {
                 VStack(spacing: 4) {
                     ForEach(store.savedAlbums) { album in

@@ -1,10 +1,13 @@
 # SpotifyClone
 
 ![Build](https://github.com/clexec/Mono/actions/workflows/build.yml/badge.svg)
-![iOS](https://img.shields.io/badge/iOS-17%2B-black?logo=apple)
-![Swift](https://img.shields.io/badge/Swift-5.9-orange?logo=swift)
+![iOS](https://img.shields.io/badge/iOS-18%2B-black?logo=apple)
+![Swift](https://img.shields.io/badge/Swift-5.0-orange?logo=swift)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-Spotify-клон с интеграцией Яндекс Музыки и Liquid Glass дизайном для iOS.
+<img src="mono/luxgram-badge.png" height="40" alt="LuxGram"/>
+
+Музыкальный плеер для iOS с интеграцией Яндекс Музыки, Liquid Glass дизайном и кастомным таб-баром.
 
 ---
 

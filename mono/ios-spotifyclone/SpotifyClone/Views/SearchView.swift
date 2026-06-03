@@ -197,7 +197,8 @@ struct SearchView: View {
         }
         // Local demo search fallback.
         let lower = text.lowercased()
-        let tracks = DemoData.allTracks.filter {
+        let allTracks = store.userTracks + DemoData.allTracks
+        let tracks = allTracks.filter {
             $0.title.lowercased().contains(lower) || $0.artistName.lowercased().contains(lower)
         }
         let albums = DemoData.albums.filter {

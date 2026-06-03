@@ -28,6 +28,7 @@ final class LibraryStore {
         static let savedPlaylists = "saved_playlists"
         static let savedArtists = "saved_artists"
         static let recent = "recent_tracks"
+        static let userTracks = "user_tracks"
     }
 
     var token: String {
@@ -39,6 +40,7 @@ final class LibraryStore {
     var savedPlaylists: [Playlist] = [] { didSet { persist(savedPlaylists, Keys.savedPlaylists) } }
     var savedArtists: [Artist] = [] { didSet { persist(savedArtists, Keys.savedArtists) } }
     var recentTracks: [Track] = [] { didSet { persist(recentTracks, Keys.recent) } }
+    var userTracks: [Track] = [] { didSet { persist(userTracks, Keys.userTracks) } }
 
     var source: CatalogSource { token.isEmpty ? .demo : .yandex }
 
@@ -49,6 +51,7 @@ final class LibraryStore {
         savedPlaylists = Self.load(Keys.savedPlaylists)
         savedArtists = Self.load(Keys.savedArtists)
         recentTracks = Self.load(Keys.recent)
+        userTracks = Self.load(Keys.userTracks)
 
         // Seed the library with a couple of demo items on first launch.
         if savedPlaylists.isEmpty && savedAlbums.isEmpty {
@@ -90,6 +93,16 @@ final class LibraryStore {
     func toggleFollow(artist: Artist) {
         if let idx = savedArtists.firstIndex(where: { $0.id == artist.id }) { savedArtists.remove(at: idx) }
         else { savedArtists.insert(artist, at: 0) }
+    }
+
+    // MARK: - User tracks
+
+    func addUserTrack(_ track: Track) {
+        userTracks.insert(track, at: 0)
+    }
+
+    func removeUserTrack(_ track: Track) {
+        userTracks.removeAll { $0.id == track.id }
     }
 
     // MARK: - History
