@@ -235,7 +235,7 @@ final class YandexMusicService {
               let s = value("s") else { return nil }
         // Sign salt per the unofficial protocol.
         let salt = "XGRlBW9FXlekgbPrRHuSiA"
-        let signSource = salt + path.dropFirst() + s
+        let signSource = salt + String(path.dropFirst()) + s
         let digest = Insecure.MD5.hash(data: Data(signSource.utf8))
         let sign = digest.map { String(format: "%02x", $0) }.joined()
         let urlString = "https://\(host)/get-mp3/\(sign)/\(ts)\(path)"

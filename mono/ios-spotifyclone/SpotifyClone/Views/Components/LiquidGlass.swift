@@ -15,26 +15,19 @@ struct LiquidGlassBackground: View {
     var tint: Color = .white
 
     var body: some View {
-        if #available(iOS 26.0, *) {
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .fill(.clear)
-                .glassEffect(.regular.tint(tint.opacity(0.06)), in: .rect(cornerRadius: cornerRadius))
-                .overlay(highlightStroke)
-        } else {
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [tint.opacity(0.10), .clear, .black.opacity(0.05)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .fill(.ultraThinMaterial)
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [tint.opacity(0.10), .clear, .black.opacity(0.05)],
+                            startPoint: .top,
+                            endPoint: .bottom
                         )
-                )
-                .overlay(highlightStroke)
-        }
+                    )
+            )
+            .overlay(highlightStroke)
     }
 
     private var highlightStroke: some View {
