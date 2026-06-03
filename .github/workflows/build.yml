@@ -15,9 +15,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select Xcode 16
+      - name: Select Xcode
         run: |
-          sudo xcode-select -s /Applications/Xcode_16.app
+          XCODE=$(ls /Applications/ | grep '^Xcode' | grep '\.app$' | sort -V | tail -1)
+          echo "Using: $XCODE"
+          sudo xcode-select -s "/Applications/$XCODE"
           xcodebuild -version
 
       - name: Archive
@@ -28,6 +30,9 @@ jobs:
             -configuration Release \
             -archivePath $RUNNER_TEMP/SpotifyClone.xcarchive \
             -destination "generic/platform=iOS" \
+            -sdk iphoneos \
+            ONLY_ACTIVE_ARCH=NO \
+            SUPPORTED_PLATFORMS=iphoneos \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
