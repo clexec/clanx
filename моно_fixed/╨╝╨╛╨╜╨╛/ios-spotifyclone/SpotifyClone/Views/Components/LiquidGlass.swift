@@ -1,25 +1,14 @@
-//
-//  LiquidGlass.swift
-//  SpotifyClone
-//
-//  Reusable liquid-glass surfaces. On iOS 26+ uses the native
-//  `glassEffect` API without clipShape so compositing works correctly.
-//  On earlier systems falls back to ultraThinMaterial + gradient stroke.
-//
-
 import SwiftUI
 
-/// A frosted "liquid glass" container with a subtle highlight stroke.
 struct LiquidGlassBackground: View {
     var cornerRadius: CGFloat = 24
     var tint: Color = .white
 
     var body: some View {
         if #available(iOS 26.0, *) {
-            // ✅ Без .clipShape — glassEffect сам управляет формой
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .fill(.clear)
-                .glassEffect(.regular.tint(tint.opacity(0.06)), in: .rect(cornerRadius: cornerRadius))
+                .glassEffect(.regular.tint(tint.opacity(0.15)), in: .rect(cornerRadius: cornerRadius))
                 .overlay(highlightStroke)
         } else {
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
@@ -28,7 +17,7 @@ struct LiquidGlassBackground: View {
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .fill(
                             LinearGradient(
-                                colors: [tint.opacity(0.10), .clear, .black.opacity(0.05)],
+                                colors: [tint.opacity(0.15), .clear, .black.opacity(0.08)],
                                 startPoint: .top,
                                 endPoint: .bottom
                             )
@@ -52,7 +41,7 @@ struct LiquidGlassBackground: View {
     }
 }
 
-/// Applies a liquid-glass surface behind any view.
+
 struct GlassCardModifier: ViewModifier {
     var cornerRadius: CGFloat = 20
     var tint: Color = .white
@@ -62,14 +51,14 @@ struct GlassCardModifier: ViewModifier {
     }
 }
 
+
 extension View {
-    /// Wrap the view in a liquid-glass surface.
     func glassCard(cornerRadius: CGFloat = 20, tint: Color = .white) -> some View {
         modifier(GlassCardModifier(cornerRadius: cornerRadius, tint: tint))
     }
 }
 
-/// A circular glass button used for player controls and pills.
+
 struct GlassIconButton: View {
     let systemName: String
     var size: CGFloat = 44

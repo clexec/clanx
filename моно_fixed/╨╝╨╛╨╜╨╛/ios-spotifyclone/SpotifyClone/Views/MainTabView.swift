@@ -38,7 +38,25 @@ struct MainTabView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            Theme.background.ignoresSafeArea()
+            // Динамический фон с градиентом для демонстрации liquid glass эффекта
+            ZStack {
+                Theme.background.ignoresSafeArea()
+                
+                // Добавляем тонкий градиент внизу экрана для эффекта преломления
+                if player.currentTrack != nil {
+                    LinearGradient(
+                        colors: [
+                            .clear,
+                            Color.seeded(player.currentTrack!.id).opacity(0.15),
+                            Color.seeded(player.currentTrack!.id).opacity(0.08)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .ignoresSafeArea()
+                    .animation(.easeInOut(duration: 0.6), value: player.currentTrack?.id)
+                }
+            }
 
             // Active tab content
             Group {
@@ -83,32 +101,19 @@ struct LiquidGlassTabBar: View {
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 7)
-        .background {
-            if #available(iOS 26.0, *) {
-                // Настоящий Liquid Glass — без clipShape, он сам обрезает по форме
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(.clear)
-                    .glassEffect(
-                        .regular.tint(Color.black.opacity(0.05)),
-                        in: .rect(cornerRadius: 28)
-                    )
-            } else {
-                // Fallback для iOS < 26
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 28, style: .continuous)
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [.white.opacity(0.25), .clear],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                    )
-            }
-        }
+        // ✅ ПРАВИЛЬНО: без .background, используем гибридный модификатор
+        .hybridLiquidGlass(cornerRadius: 28, tint: .white)
+        .overlay(
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [.white.opacity(0.3), .white.opacity(0.05)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
         .shadow(color: .black.opacity(0.35), radius: 18, y: 6)
         .padding(.horizontal, 24)
     }

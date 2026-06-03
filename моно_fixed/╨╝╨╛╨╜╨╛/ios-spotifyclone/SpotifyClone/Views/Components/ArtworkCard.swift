@@ -1,13 +1,5 @@
-//
-//  Artwork.swift
-//  SpotifyClone
-//
-//  Async cover-art image with a tasteful gradient placeholder.
-//
-
 import SwiftUI
 
-/// Loads remote cover art with a deterministic gradient fallback.
 struct Artwork: View {
     let url: String?
     let seed: String

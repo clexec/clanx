@@ -1,13 +1,5 @@
-//
-//  Cards.swift
-//  SpotifyClone
-//
-//  Reusable list rows and grid cards for tracks, albums, playlists, artists.
-//
-
 import SwiftUI
 
-/// A horizontal track row used in lists and detail screens.
 struct TrackRow: View {
     let track: Track
     var index: Int? = nil
@@ -68,7 +60,7 @@ struct TrackRow: View {
     }
 }
 
-/// A square media card for albums and playlists in horizontal carousels.
+
 struct MediaCard: View {
     let title: String
     let subtitle: String
@@ -99,7 +91,7 @@ struct MediaCard: View {
     }
 }
 
-/// Compact tile used on the Home top grid.
+
 struct QuickTile: View {
     let title: String
     let coverURL: String?
@@ -122,7 +114,7 @@ struct QuickTile: View {
     }
 }
 
-/// Section header with optional "see all" affordance.
+
 struct SectionHeader: View {
     let title: String
 

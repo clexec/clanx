@@ -63,20 +63,19 @@ struct MiniPlayerView: View {
                     .padding(.horizontal, 12)
                     .padding(.bottom, 6)
                 }
-                // ✅ Исправлено: без .clipShape поверх glassEffect
-                .background {
-                    if #available(iOS 26.0, *) {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(.clear)
-                            .glassEffect(
-                                .regular.tint(Color.seeded(track.id).opacity(0.08)),
-                                in: .rect(cornerRadius: 14)
-                            )
-                    } else {
-                        LiquidGlassBackground(cornerRadius: 14, tint: Color.seeded(track.id))
-                    }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                // ✅ ИСПРАВЛЕНО: используем гибридный модификатор БЕЗ clipShape после него
+                .hybridLiquidGlass(cornerRadius: 14, tint: Color.seeded(track.id))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [.white.opacity(0.25), .clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 0.5
+                        )
+                )
             }
             .buttonStyle(.plain)
         }

@@ -1,20 +1,9 @@
-//
-//  Theme.swift
-//  SpotifyClone
-//
-//  Design tokens for the Spotify-style dark theme.
-//
-
 import SwiftUI
 
-/// Central palette and design tokens used across the app.
 enum Theme {
-    /// Near-black Spotify background.
     static let background = Color(red: 0.07, green: 0.07, blue: 0.08)
-    /// Slightly elevated surface for cards.
     static let surface = Color(red: 0.12, green: 0.12, blue: 0.13)
     static let surfaceElevated = Color(red: 0.17, green: 0.17, blue: 0.18)
-    /// Spotify green accent.
     static let accent = Color(red: 0.114, green: 0.725, blue: 0.329)
     static let accentBright = Color(red: 0.18, green: 0.85, blue: 0.44)
     static let textPrimary = Color.white
@@ -24,7 +13,6 @@ enum Theme {
     static let cornerRadius: CGFloat = 12
     static let cardCornerRadius: CGFloat = 8
 
-    /// A subtle vertical gradient used for screen backgrounds.
     static func screenGradient(top: Color) -> LinearGradient {
         LinearGradient(
             colors: [top.opacity(0.55), background, background],
@@ -34,8 +22,8 @@ enum Theme {
     }
 }
 
+
 extension Color {
-    /// Deterministic vivid color derived from a string seed (used for placeholder art tints).
     static func seeded(_ seed: String) -> Color {
         var hash: UInt64 = 5381
         for byte in seed.utf8 {
