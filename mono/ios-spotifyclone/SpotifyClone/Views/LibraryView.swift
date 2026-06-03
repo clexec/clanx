@@ -164,24 +164,6 @@ struct LibraryView: View {
         }
     }
 
-    private var likedList: some View {
-        Group {
-            if store.likedTracks.isEmpty {
-                emptyState("Songs you like will appear here")
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(store.likedTracks) { track in
-                        TrackRow(track: track) {
-                            store.markPlayed(track)
-                            player.play(track, in: store.likedTracks)
-                        }
-                        .padding(.horizontal, 16)
-                    }
-                }
-            }
-        }
-    }
-
     private func libraryRow(title: String, subtitle: String, coverURL: String?, seed: String, circular: Bool) -> some View {
         HStack(spacing: 12) {
             Artwork(url: coverURL, seed: seed, cornerRadius: 6, circular: circular)

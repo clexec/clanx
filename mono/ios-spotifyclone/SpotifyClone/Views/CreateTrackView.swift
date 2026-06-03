@@ -135,10 +135,10 @@ struct CreateTrackView: View {
                 id: UUID().uuidString,
                 title: title,
                 artistName: artist,
-                albumTitle: album.isEmpty ? artist : album,
-                duration: loadDuration(from: audioURL),
+                albumName: album.isEmpty ? artist : album,
                 coverURL: nil,
-                streamURL: audioURL
+                audioURL: audioURL?.absoluteString,
+                durationSeconds: Int(loadDuration(from: audioURL))
             )
             store.addUserTrack(track)
             UINotificationFeedbackGenerator().notificationOccurred(.success)

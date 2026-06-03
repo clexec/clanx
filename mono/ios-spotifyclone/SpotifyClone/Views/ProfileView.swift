@@ -45,10 +45,13 @@ struct ProfileView: View {
     }
 
     private var statsSection: some View {
-        HStack(spacing: 12) {
-            statCard(value: "\(store.likedTracks.count)", label: "Треков")
-            statCard(value: "\(store.savedAlbums.count)", label: "Альбомов")
-            statCard(value: "\(store.userTracks.count)", label: "Добавлено")
+        let likedCount = store.likedTracks.count
+        let albumsCount = store.savedAlbums.count
+        let userCount = store.userTracks.count
+        return HStack(spacing: 12) {
+            statCard(value: "\(likedCount)",  label: "Треков")
+            statCard(value: "\(albumsCount)", label: "Альбомов")
+            statCard(value: "\(userCount)",   label: "Добавлено")
         }
     }
 
