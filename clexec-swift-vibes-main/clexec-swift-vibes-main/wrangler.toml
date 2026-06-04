@@ -1,6 +1,0 @@
-name = "clexec-swift-vibes"
-compatibility_date = "2024-01-01"
-pages_build_output_dir = ".output/public"
-
-[site]
-bucket = ".output/public"
