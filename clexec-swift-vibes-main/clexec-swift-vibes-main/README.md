@@ -6,16 +6,20 @@ Modern web application built with TanStack Start and React.
 
 This project is optimized for Cloudflare Pages deployment.
 
-### Quick Deploy
+### Quick Deploy via Cloudflare Pages Dashboard
 
 1. **Connect your GitHub repository** to Cloudflare Pages
 2. **Configure build settings:**
-   - Build command: `bun run build`
+   - Framework preset: `None` (or leave as auto-detect)
+   - Build command: `npm install && npm run build`
    - Build output directory: `.output/public`
    - Root directory: (leave as default)
+   - Node version: `20` or higher
 
 3. **Environment variables:** (if needed)
    - Add any required environment variables in Cloudflare Pages settings
+
+**Important:** Cloudflare Pages will automatically detect and use npm. If you want to use bun, you'll need to set it up in a custom build script.
 
 ### Manual Deploy
 
