@@ -10,19 +10,19 @@ struct CrateTabBar: View {
         ("person.fill", "Профиль",   "Profile")
     ]
 
-    // Warm accent — matches screenshot orange tint on active tab
     private let accent = Color(red: 0.85, green: 0.55, blue: 0.30)
 
     var body: some View {
-        HStack(spacing: 0) {
-            ForEach(items.indices, id: \.self) { tabItem($0) }
+        HStack(spacing: 10) {
+            // Main tab capsule — 3 tabs inside one glass pill
+            HStack(spacing: 0) {
+                ForEach(items.indices, id: \.self) { tabItem($0) }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .glassEffect(.regular, in: Capsule())
 
-            Divider()
-                .frame(width: 1, height: 32)
-                .background(.white.opacity(0.12))
-                .padding(.horizontal, 4)
-
-            // Search button — inside the same capsule
+            // Search — separate standalone glass circle
             Button(action: onSearch) {
                 VStack(spacing: 3) {
                     Image(systemName: "magnifyingglass")
@@ -33,15 +33,13 @@ struct CrateTabBar: View {
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(.white.opacity(0.7))
                 }
-                .padding(.horizontal, 10)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 6)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .glassEffect(.regular, in: Capsule())
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-        // Single glass capsule for the whole bar
-        .glassEffect(.regular, in: Capsule())
     }
 
     @ViewBuilder
