@@ -2,62 +2,80 @@ import SwiftUI
 
 struct CrateRootView: View {
     @EnvironmentObject private var player: PlayerManager
-    @State private var tab = 0
-    @State private var showPlayer = false
     @State private var showSearch = false
+    @State private var showPlayer = false
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            ZStack {
-                Color.black.ignoresSafeArea()
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.10, green: 0.07, blue: 0.18),
-                        Color(red: 0.05, green: 0.07, blue: 0.15),
-                        Color.black
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
-            }
-
-            screen
-                .safeAreaInset(edge: .bottom) {
-                    Color.clear.frame(height: player.currentTrack != nil ? 130 : 80)
+        ZStack(alignment: .bottomTrailing) {
+            tabContent
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    if player.currentTrack != nil {
+                        MiniPlayerBar()
+                            .padding(.horizontal, 10)
+                            .padding(.bottom, 6)
+                            .padding(.top, 4)
+                            .onTapGesture { showPlayer = true }
+                    }
                 }
-                .gesture(
-                    DragGesture(minimumDistance: 40, coordinateSpace: .local)
-                        .onEnded { val in
-                            guard abs(val.translation.width) > abs(val.translation.height) else { return }
-                            withAnimation(.spring(response: 0.32, dampingFraction: 0.72)) {
-                                if val.translation.width < -40 { tab = min(tab + 1, 2) }
-                                if val.translation.width >  40 { tab = max(tab - 1, 0) }
-                            }
-                        }
-                )
-
-            VStack(spacing: 10) {
-                if player.currentTrack != nil {
-                    MiniPlayerBar()
-                        .onTapGesture { showPlayer = true }
-                }
-                CrateTabBar(selection: $tab) { showSearch = true }
-            }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 8)
+            searchButton
         }
         .sheet(isPresented: $showPlayer) { PlayerScreen() }
         .sheet(isPresented: $showSearch) { SearchSheetView() }
     }
 
     @ViewBuilder
-    private var screen: some View {
-        switch tab {
-        case 1: CrateFavoritesScreen()
-        case 2: CrateProfileScreen()
-        default: HomeScreen()
+    private var tabContent: some View {
+        #if compiler(>=6.2)
+        nativeTabView
+        #else
+        fallbackTabView
+        #endif
+    }
+
+    #if compiler(>=6.2)
+    @ViewBuilder
+    private var nativeTabView: some View {
+        TabView {
+            Tab("Главная", systemImage: "house.fill") {
+                HomeScreen()
+            }
+            Tab("Избранное", systemImage: "heart.fill") {
+                CrateFavoritesScreen()
+            }
+            Tab("Профиль", systemImage: "person.fill") {
+                CrateProfileScreen()
+            }
         }
+    }
+    #endif
+
+    private var fallbackTabView: some View {
+        TabView {
+            HomeScreen()
+                .tabItem { Label("Главная", systemImage: "house.fill") }
+            CrateFavoritesScreen()
+                .tabItem { Label("Избранное", systemImage: "heart.fill") }
+            CrateProfileScreen()
+                .tabItem { Label("Профиль", systemImage: "person.fill") }
+        }
+    }
+
+    // Floating search — bottom-right, separate from tab bar
+    private var searchButton: some View {
+        Button { showSearch = true } label: {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 50, height: 50)
+        }
+        #if compiler(>=6.2)
+        .glassEffect(in: .circle)
+        #else
+        .background(.ultraThinMaterial, in: Circle())
+        #endif
+        .shadow(color: .black.opacity(0.3), radius: 8, y: 4)
+        .padding(.trailing, 16)
+        .padding(.bottom, player.currentTrack != nil ? 160 : 92)
     }
 }
 
