@@ -5,6 +5,7 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -22,32 +23,66 @@ jobs:
           sudo xcode-select -s "/Applications/$XCODE"
           xcodebuild -version
 
-      - name: Archive
+      - name: Stub YMAPI-dependent files
+        working-directory: clanx
         run: |
+          cat > Monk/Services/Stream/YandexMusicClient.swift << 'SWIFT'
+          import Foundation
+          final class YandexMusicClient {
+              static let shared = YandexMusicClient()
+              let client: AnyObject? = nil
+              private init() {}
+          }
+          SWIFT
+
+          cat > Monk/Services/Stream/YandexStreamResolver.swift << 'SWIFT'
+          import Foundation
+          struct YandexStreamResolver: StreamResolving {
+              let source: MusicSource = .yandex
+              init?() { return nil }
+              func resolveStreamURL(for track: Track) async -> URL? { nil }
+          }
+          SWIFT
+
+      - name: Archive
+        working-directory: clanx
+        run: |
+          set -o pipefail
           xcodebuild archive \
-            -project mono/ios-spotifyclone/SpotifyClone.xcodeproj \
-            -scheme SpotifyClone \
+            -project Monk.xcodeproj \
+            -scheme Monk \
             -configuration Release \
-            -archivePath $RUNNER_TEMP/SpotifyClone.xcarchive \
             -destination "generic/platform=iOS" \
-            -sdk iphoneos \
-            ONLY_ACTIVE_ARCH=NO \
-            SUPPORTED_PLATFORMS=iphoneos \
+            -archivePath "$RUNNER_TEMP/Monk.xcarchive" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            DEVELOPMENT_TEAM=""
+            DEVELOPMENT_TEAM="" \
+            2>&1 | tee /tmp/xcodebuild.log
+          echo "--- Archive check ---"
+          ls "$RUNNER_TEMP/Monk.xcarchive/Products/Applications/" 2>/dev/null || echo "No archive"
 
-      - name: Create IPA
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: /tmp/xcodebuild.log
+          retention-days: 7
+
+      - name: Create unsigned IPA
         run: |
-          mkdir -p $RUNNER_TEMP/Payload
-          cp -r "$RUNNER_TEMP/SpotifyClone.xcarchive/Products/Applications/SpotifyClone.app" \
-                "$RUNNER_TEMP/Payload/SpotifyClone.app"
-          cd $RUNNER_TEMP
-          zip -r SpotifyClone.ipa Payload/
+          APPS_PATH="$RUNNER_TEMP/Monk.xcarchive/Products/Applications"
+          IPA_DIR="$RUNNER_TEMP/ipa"
+          mkdir -p "$IPA_DIR/Payload"
+          cp -r "$APPS_PATH/Monk.app" "$IPA_DIR/Payload/"
+          cd "$IPA_DIR"
+          zip -r Monk.ipa Payload/
+          echo "IPA size: $(ls -lh Monk.ipa)"
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: SpotifyClone
-          path: ${{ runner.temp }}/SpotifyClone.ipa
+          name: Monk-unsigned
+          path: ${{ runner.temp }}/ipa/Monk.ipa
+          retention-days: 14
