@@ -53,6 +53,7 @@ struct FullPlayerView: View {
     @EnvironmentObject private var persistence: PersistenceController
     @State private var showQueue = false
     @State private var showComments = false
+    @State private var showEqualizer = false
 
     var body: some View {
         if let track = player.currentTrack {
@@ -92,6 +93,7 @@ struct FullPlayerView: View {
 
                 HStack(spacing: 28) {
                     AudioVisualizerView(isPlaying: player.audio.state == .playing)
+                    Button { showEqualizer = true } label: { Image(systemName: "slider.vertical.3") }
                     Button { showComments = true } label: { Image(systemName: "text.bubble") }
                     Button { showQueue = true } label: { Image(systemName: "list.bullet") }
                     ShareLink(item: "Слушай \(track.title) от \(track.artistName) в Mono") {
@@ -113,6 +115,7 @@ struct FullPlayerView: View {
             )
             .sheet(isPresented: $showQueue) { QueueView() }
             .sheet(isPresented: $showComments) { CommentView(track: track) }
+            .sheet(isPresented: $showEqualizer) { EqualizerView() }
         }
     }
 }

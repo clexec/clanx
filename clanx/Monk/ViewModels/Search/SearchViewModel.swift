@@ -9,7 +9,7 @@ final class SearchViewModel: ObservableObject {
     @Published var history: [String] = UserDefaults.standard.stringArray(forKey: "searchHistory") ?? []
     @Published var genreCards: [GenreCardData] = GenreCardData.defaultCards
 
-    private let repository = SearchRepository(api: JioSaavnAPIService())
+    private let repository = SearchRepository(api: ITunesAPIService())
     private var searchTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
 
@@ -49,7 +49,7 @@ final class SearchViewModel: ObservableObject {
 
     private func loadGenreArtwork() {
         Task {
-            let api = JioSaavnAPIService()
+            let api = ITunesAPIService()
             await withTaskGroup(of: (Int, URL?).self) { group in
                 for (index, card) in genreCards.enumerated() {
                     group.addTask {

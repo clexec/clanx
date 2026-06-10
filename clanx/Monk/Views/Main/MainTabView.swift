@@ -64,27 +64,31 @@ struct MainTabView: View {
     // MARK: - Custom tab bar
 
     private var customTabBar: some View {
-        HStack(spacing: 14) {
-            // Left glass capsule — 3 tabs
-            HStack(spacing: 2) {
+        HStack(spacing: 12) {
+            // Left glass capsule — 3 tabs joined
+            HStack(spacing: 0) {
                 ForEach(AppTab.allCases, id: \.rawValue) { tab in
                     tabItem(tab)
                 }
             }
-            .padding(5)
-            .crateGlass(Capsule())
+            .padding(.horizontal, 6)
+            .padding(.vertical, 6)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay(Capsule().stroke(Color.white.opacity(0.1), lineWidth: 0.5))
 
-            // Right glass circle — search, visually separate
+            // Right glass circle — search, physically separated
             Button { showSearch = true } label: {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(width: 54, height: 54)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .overlay(Circle().stroke(Color.white.opacity(0.1), lineWidth: 0.5))
             }
             .buttonStyle(.plain)
-            .crateGlass(Circle())
         }
         .padding(.horizontal, 20)
+        .shadow(color: .black.opacity(0.35), radius: 16, y: 4)
     }
 
     // MARK: - Single tab item
