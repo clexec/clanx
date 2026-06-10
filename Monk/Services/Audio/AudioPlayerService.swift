@@ -18,10 +18,15 @@ final class AudioPlayerService: ObservableObject {
     func play(track: Track) {
         loadTask?.cancel()
         removeObserver()
+        state = .loading
         duration = Double(max(track.durationMillis, 30_000)) / 1000
         loadTask = Task { [weak self] in
-            guard let self, let url = await self.streamProvider.streamURL(for: track), !Task.isCancelled else { return }
-            self.startPlayback(url: url)
+            guard let self, !Task.isCancelled else { return }
+            if let url = await self.streamProvider.streamURL(for: track), !Task.isCancelled {
+                self.startPlayback(url: url)
+            } else if !Task.isCancelled {
+                self.state = .failed
+            }
         }
     }
 

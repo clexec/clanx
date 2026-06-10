@@ -8,39 +8,54 @@ struct PlayerActionsBar: View {
 
     @EnvironmentObject private var player: PlayerManager
     @State private var showShare = false
-
-    private var shareText: String {
-        guard let t = player.currentTrack else { return "" }
-        return "\(t.artistName) — \(t.title)"
-    }
+    @State private var likeBounce = false
 
     var body: some View {
         HStack {
-            icon(isLiked ? "heart.fill" : "heart", tint: isLiked ? .red : nil, action: onLike)
+            likeButton
             Spacer()
-            icon("bubble.left", action: onComments)
+            actionIcon("bubble.left", action: onComments)
             Spacer()
-            AirPlayIcon()
-                .frame(width: 36, height: 36)
+            AirPlayIcon().frame(width: 36, height: 36)
             Spacer()
-            icon("forward.end.fill") {
+            actionIcon("forward.end.fill") {
                 player.audio.seek(to: max(0, player.audio.duration - 0.5))
             }
             Spacer()
-            icon("square.and.arrow.up") { showShare = true }
+            actionIcon("square.and.arrow.up") { showShare = true }
         }
-        .foregroundStyle(CrateColor.secondaryText)
         .sheet(isPresented: $showShare) {
-            ShareSheet(items: [shareText])
-                .presentationDetents([.medium])
+            if let track = player.currentTrack {
+                ShareSheet(items: ["\(track.artistName) — \(track.title)"])
+                    .presentationDetents([.medium])
+            }
         }
     }
 
-    private func icon(_ name: String, tint: Color? = nil, action: @escaping () -> Void) -> some View {
+    private var likeButton: some View {
+        Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                likeBounce = true
+                onLike()
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { likeBounce = false }
+        } label: {
+            Image(systemName: isLiked ? "heart.fill" : "heart")
+                .font(.system(size: 22, weight: .regular))
+                .foregroundStyle(isLiked ? .red : CrateColor.secondaryText)
+                .scaleEffect(likeBounce ? 1.35 : 1.0)
+                .frame(width: 36, height: 36)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .animation(.spring(response: 0.3, dampingFraction: 0.5), value: isLiked)
+    }
+
+    private func actionIcon(_ name: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: name)
                 .font(.system(size: 20, weight: .regular))
-                .foregroundStyle(tint ?? CrateColor.secondaryText)
+                .foregroundStyle(CrateColor.secondaryText)
                 .frame(width: 36, height: 36)
                 .contentShape(Rectangle())
         }

@@ -33,6 +33,7 @@ struct Comment: Identifiable, Codable, Hashable {
     let displayName: String
     var text: String
     let createdAt: Date
+    var likeCount: Int = 0
 }
 
 struct Genre: Identifiable, Codable, Hashable {

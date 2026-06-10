@@ -12,8 +12,10 @@ struct CircleGlassButton: View {
                 .font(.system(size: size * iconScale, weight: .semibold))
                 .foregroundStyle(.white)
                 .frame(width: size, height: size)
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .crateGlass(Circle())
+        .glassEffect(.regular, in: Circle())
+        .frame(width: size, height: size)
     }
 }

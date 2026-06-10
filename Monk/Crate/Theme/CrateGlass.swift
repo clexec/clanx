@@ -1,12 +1,8 @@
 import SwiftUI
 
+// Convenience wrapper — app targets iOS 26+, glassEffect is always available
 extension View {
-    @ViewBuilder
     func crateGlass<S: Shape>(_ shape: S) -> some View {
-        if #available(iOS 26.0, *) {
-            glassEffect(.regular, in: shape)
-        } else {
-            background(.ultraThinMaterial, in: shape)
-        }
+        glassEffect(.regular, in: shape)
     }
 }

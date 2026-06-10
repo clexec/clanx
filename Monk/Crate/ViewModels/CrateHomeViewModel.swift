@@ -7,6 +7,7 @@ final class CrateHomeViewModel: ObservableObject {
     @Published var filter = 0
     @Published var recommended: [Track] = []
     @Published var tiles: [Track] = []
+    @Published var albums: [Album] = []
     @Published var results: [Track] = []
     @Published var isLoading = false
 
@@ -19,6 +20,7 @@ final class CrateHomeViewModel: ObservableObject {
 
     private let tracks = TrackRepository(api: ITunesAPIService())
     private let search = SearchRepository(api: ITunesAPIService())
+    private let albumRepo = AlbumRepository()
 
     func loadIfNeeded() async {
         guard recommended.isEmpty else { return }
@@ -38,9 +40,12 @@ final class CrateHomeViewModel: ObservableObject {
 
     private func reload(seed: String) async {
         isLoading = true
-        let loaded = await tracks.recommendations(seed: seed)
+        async let tracksTask = tracks.recommendations(seed: seed)
+        async let albumTracksTask = tracks.trending()
+        let (loaded, albumSource) = await (tracksTask, albumTracksTask)
         recommended = loaded
         tiles = Array(loaded.prefix(6))
+        albums = albumRepo.albums(from: albumSource).prefix(8).map { $0 }
         isLoading = false
     }
 }

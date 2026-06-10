@@ -2,27 +2,104 @@ import SwiftUI
 
 struct CommentRow: View {
     let comment: Comment
+    @State private var isLiked = false
+    @State private var isDisliked = false
+    @State private var likeCount: Int
+    @State private var showReply = false
+    @State private var replyText = ""
+
+    init(comment: Comment) {
+        self.comment = comment
+        self._likeCount = State(initialValue: comment.likeCount)
+    }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "person.crop.circle.fill")
-                .resizable().frame(width: 40, height: 40)
-                .foregroundStyle(CrateColor.surfaceElevated)
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text(comment.displayName).font(.subheadline.bold()).foregroundStyle(.white)
-                    Text(CrateFormat.relativeString(comment.createdAt))
-                        .font(.caption2).foregroundStyle(CrateColor.secondaryText)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "person.crop.circle.fill")
+                    .resizable().frame(width: 38, height: 38)
+                    .foregroundStyle(CrateColor.surfaceElevated)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text(comment.displayName)
+                            .font(.subheadline.bold()).foregroundStyle(.white)
+                        Text(CrateFormat.relativeString(comment.createdAt))
+                            .font(.caption2).foregroundStyle(CrateColor.secondaryText)
+                    }
+                    Text(comment.text)
+                        .font(.subheadline).foregroundStyle(CrateColor.primaryText)
+                    HStack(spacing: 16) {
+                        Button {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.55)) {
+                                isLiked.toggle()
+                                if isLiked { isDisliked = false; likeCount += 1 }
+                                else { likeCount -= 1 }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: isLiked ? "hand.thumbsup.fill" : "hand.thumbsup")
+                                    .foregroundStyle(isLiked ? .white : CrateColor.secondaryText)
+                                    .scaleEffect(isLiked ? 1.15 : 1.0)
+                                if likeCount > 0 {
+                                    Text("\(likeCount)").font(.caption2)
+                                        .foregroundStyle(CrateColor.secondaryText)
+                                }
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.55), value: isLiked)
+
+                        Button {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.55)) {
+                                isDisliked.toggle()
+                                if isDisliked { isLiked = false }
+                            }
+                        } label: {
+                            Image(systemName: isDisliked ? "hand.thumbsdown.fill" : "hand.thumbsdown")
+                                .foregroundStyle(isDisliked ? .white : CrateColor.secondaryText)
+                                .scaleEffect(isDisliked ? 1.15 : 1.0)
+                        }
+                        .buttonStyle(.plain)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.55), value: isDisliked)
+
+                        Button {
+                            withAnimation { showReply.toggle() }
+                        } label: {
+                            Label(bi("Ответить", "Reply"), systemImage: "arrowshape.turn.up.left")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(showReply ? .white : CrateColor.secondaryText)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .font(.caption.weight(.medium))
+                    .padding(.top, 4)
                 }
-                Text(comment.text).font(.subheadline).foregroundStyle(CrateColor.primaryText)
-                HStack(spacing: 20) {
-                    Label(bi("Ответить", "Reply"), systemImage: "arrowshape.turn.up.left")
-                    Image(systemName: "hand.thumbsup")
-                    Image(systemName: "hand.thumbsdown")
-                }
-                .font(.caption.weight(.medium)).foregroundStyle(CrateColor.secondaryText).padding(.top, 2)
+                Spacer(minLength: 0)
             }
-            Spacer(minLength: 0)
+
+            if showReply {
+                HStack(spacing: 10) {
+                    TextField(bi("Ответ…", "Reply…"), text: $replyText)
+                        .textFieldStyle(.plain).foregroundStyle(.white)
+                        .padding(.horizontal, 14).padding(.vertical, 10)
+                        .glassEffect(.regular, in: Capsule())
+                    Button {
+                        replyText = ""
+                        withAnimation { showReply = false }
+                    } label: {
+                        Image(systemName: "arrow.up")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 38, height: 38)
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .glassEffect(.regular, in: Circle())
+                }
+                .padding(.leading, 50)
+                .padding(.top, 10)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
     }
 }

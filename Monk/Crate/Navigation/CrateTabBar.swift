@@ -11,46 +11,51 @@ struct CrateTabBar: View {
     ]
 
     var body: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 4) {
-                ForEach(items.indices, id: \.self) { index in
-                    tab(index)
-                }
+        HStack(spacing: 10) {
+            ForEach(items.indices, id: \.self) { index in
+                tabButton(index)
             }
-            .padding(6)
-            .contentShape(Capsule())
-            .glassEffect(.regular, in: Capsule())
-
-            Button(action: onSearch) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 52, height: 52)
-                    .contentShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .glassEffect(.regular, in: Circle())
+            Spacer(minLength: 0)
+            searchButton
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
     }
 
-    private func tab(_ index: Int) -> some View {
+    private func tabButton(_ index: Int) -> some View {
         let active = selection == index
         return Button {
-            selection = index
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.72)) {
+                selection = index
+            }
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: items[index].symbol)
+                    .font(.system(size: 17, weight: .semibold))
                 if active {
                     Text(bi(items[index].ru, items[index].en))
-                        .font(.footnote.weight(.semibold))
+                        .font(.subheadline.weight(.semibold))
+                        .transition(.opacity.combined(with: .scale(scale: 0.8, anchor: .leading)))
                 }
             }
-            .foregroundStyle(active ? .white : CrateColor.secondaryText)
-            .padding(.horizontal, active ? 16 : 12)
-            .padding(.vertical, 10)
-            .background { if active { Capsule().fill(CrateColor.surfaceElevated) } }
+            .foregroundStyle(.white)
+            .padding(.horizontal, active ? 18 : 14)
+            .padding(.vertical, 13)
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
+        .glassEffect(.regular, in: Capsule())
+    }
+
+    private var searchButton: some View {
+        Button(action: onSearch) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 50, height: 50)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .glassEffect(.regular, in: Circle())
     }
 }
