@@ -8,7 +8,6 @@ struct CrateRootView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Gradient background — glass needs color behind it to be visible
             ZStack {
                 Color.black.ignoresSafeArea()
                 LinearGradient(
@@ -22,10 +21,22 @@ struct CrateRootView: View {
                 )
                 .ignoresSafeArea()
             }
+
             screen
                 .safeAreaInset(edge: .bottom) {
                     Color.clear.frame(height: player.currentTrack != nil ? 130 : 80)
                 }
+                .gesture(
+                    DragGesture(minimumDistance: 40, coordinateSpace: .local)
+                        .onEnded { val in
+                            guard abs(val.translation.width) > abs(val.translation.height) else { return }
+                            withAnimation(.spring(response: 0.32, dampingFraction: 0.72)) {
+                                if val.translation.width < -40 { tab = min(tab + 1, 2) }
+                                if val.translation.width >  40 { tab = max(tab - 1, 0) }
+                            }
+                        }
+                )
+
             VStack(spacing: 10) {
                 if player.currentTrack != nil {
                     MiniPlayerBar()
