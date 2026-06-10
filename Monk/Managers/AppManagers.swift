@@ -80,7 +80,15 @@ final class PlayerManager: ObservableObject {
 final class LibraryManager: ObservableObject {
     @Published var playlists: [Playlist] = []
     private let persistence: PersistenceController
-    init(persistence: PersistenceController) { self.persistence = persistence }
+    private var cancellable: AnyCancellable?
+
+    init(persistence: PersistenceController) {
+        self.persistence = persistence
+        cancellable = persistence.objectWillChange
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+    }
+
     var likedTracks: [Track] { persistence.likedTracks }
     func toggleLike(_ track: Track) { persistence.toggleLike(track) }
     func isLiked(_ track: Track) -> Bool { persistence.likedTracks.contains { $0.id == track.id } }

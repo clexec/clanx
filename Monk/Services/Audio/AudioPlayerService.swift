@@ -18,14 +18,23 @@ final class AudioPlayerService: ObservableObject {
     func play(track: Track) {
         loadTask?.cancel()
         removeObserver()
-        state = .loading
         duration = Double(max(track.durationMillis, 30_000)) / 1000
+
+        // Start preview immediately — zero latency for the user
+        if let previewURL = track.previewURL {
+            startPlayback(url: previewURL)
+            duration = 30
+        } else {
+            state = .loading
+        }
+
+        // In background try to upgrade to full YouTube stream
         loadTask = Task { [weak self] in
             guard let self, !Task.isCancelled else { return }
-            if let url = await self.streamProvider.streamURL(for: track), !Task.isCancelled {
+            if let url = await self.streamProvider.streamURL(for: track),
+               url != track.previewURL, !Task.isCancelled {
                 self.startPlayback(url: url)
-            } else if !Task.isCancelled {
-                self.state = .failed
+                self.duration = Double(max(track.durationMillis, 30_000)) / 1000
             }
         }
     }

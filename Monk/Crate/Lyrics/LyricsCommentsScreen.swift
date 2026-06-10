@@ -4,6 +4,7 @@ struct LyricsCommentsScreen: View {
     let track: Track
     @EnvironmentObject private var persistence: PersistenceController
     @EnvironmentObject private var auth: AuthenticationManager
+    @EnvironmentObject private var player: PlayerManager
     @Environment(\.dismiss) private var dismiss
     @State private var tab = 1
     @State private var draft = ""
@@ -64,7 +65,20 @@ struct LyricsCommentsScreen: View {
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 22) {
-                        ForEach(comments) { CommentRow(comment: $0) }
+                        ForEach(comments) { comment in
+                            CommentRow(comment: comment) { replyText in
+                                let user = auth.currentUser
+                                let reply = Comment(
+                                    id: UUID().uuidString,
+                                    trackID: track.id,
+                                    userID: user?.id ?? "guest",
+                                    displayName: "↳ " + (user?.displayName ?? bi("Гость", "Guest")),
+                                    text: replyText,
+                                    createdAt: Date()
+                                )
+                                persistence.saveComment(reply)
+                            }
+                        }
                     }
                     .padding(20)
                 }
