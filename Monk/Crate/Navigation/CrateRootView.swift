@@ -31,15 +31,19 @@ struct CrateRootView: View {
     @ViewBuilder
     private var nativeTabView: some View {
         TabView {
-            Tab("Главная", systemImage: "house.fill") {
-                HomeScreen()
+            // Grouped section — appears as one connected glass pill
+            TabSection {
+                Tab("Главная", systemImage: "house.fill") {
+                    HomeScreen()
+                }
+                Tab("Избранное", systemImage: "heart.fill") {
+                    CrateFavoritesScreen()
+                }
+                Tab("Профиль", systemImage: "person.fill") {
+                    CrateProfileScreen()
+                }
             }
-            Tab("Избранное", systemImage: "heart.fill") {
-                CrateFavoritesScreen()
-            }
-            Tab("Профиль", systemImage: "person.fill") {
-                CrateProfileScreen()
-            }
+            // Search — standalone, separated from the group
             Tab("Поиск", systemImage: "magnifyingglass") {
                 SearchTabView()
             }
