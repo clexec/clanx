@@ -23,7 +23,7 @@ final class PlaybackStreamProvider {
     private static func makeResolvers() -> [StreamResolving] {
         PlaybackConfig.preferredSources.compactMap { source -> StreamResolving? in
             switch source {
-            case .youtube: return YouTubeStreamResolver()
+            case .jamendo: return nil  // Jamendo audio URL is in track.previewURL — no resolver needed
             case .yandex: return YandexStreamResolver()
             case .preview: return nil
             }

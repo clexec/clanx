@@ -1,5 +1,5 @@
 enum MusicSource: String, CaseIterable, Sendable {
-    case youtube
+    case jamendo
     case yandex
     case preview
 }

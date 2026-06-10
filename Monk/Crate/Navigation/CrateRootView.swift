@@ -7,18 +7,21 @@ struct CrateRootView: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            tabContent
-                // tabViewBottomAccessory places mini player ABOVE the tab bar (not overlapping)
-                .tabViewBottomAccessory {
-                    if player.currentTrack != nil {
+            // tabViewBottomAccessory only attached when track is active (avoids grey empty container)
+            if player.currentTrack != nil {
+                tabContent
+                    .tabViewBottomAccessory {
                         MiniPlayerBar()
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
                             .onTapGesture { showPlayer = true }
                     }
-                }
+            } else {
+                tabContent
+            }
 
-            // Floating search — separate glass circle at the same visual level as the tab bar
+            // Floating search circle — same visual level as tab bar, right side
+            // (iOS 26 has no native API to separate tab groups; this is the correct approach)
             searchButton
         }
         .sheet(isPresented: $showPlayer) { PlayerScreen() }
@@ -37,7 +40,6 @@ struct CrateRootView: View {
     #if compiler(>=6.2)
     @ViewBuilder
     private var nativeTabView: some View {
-        // 3 tabs only — search is a separate floating button outside the tab bar
         TabView {
             Tab("Главная", systemImage: "house.fill") { HomeScreen() }
             Tab("Избранное", systemImage: "heart.fill") { CrateFavoritesScreen() }
@@ -54,7 +56,7 @@ struct CrateRootView: View {
         }
     }
 
-    // Floating search circle — same visual level as tab bar, right side
+    // Floating search — visually separate from the 3-tab group (only option in iOS 26)
     private var searchButton: some View {
         Button { showSearch = true } label: {
             Image(systemName: "magnifyingglass")
@@ -69,12 +71,10 @@ struct CrateRootView: View {
         #endif
         .shadow(color: .black.opacity(0.25), radius: 8, y: 4)
         .padding(.trailing, 16)
-        // 92 = tab bar height + home indicator; +68 when mini player active
         .padding(.bottom, player.currentTrack != nil ? 160 : 92)
     }
 }
 
-// Search sheet
 private struct SearchSheetView: View {
     @EnvironmentObject private var player: PlayerManager
     @StateObject private var model = CrateHomeViewModel()
@@ -87,11 +87,9 @@ private struct SearchSheetView: View {
                 HStack {
                     SearchField(text: $model.query) { Task { await model.runSearch() } }
                     Button(bi("Отмена", "Cancel")) { dismiss() }
-                        .foregroundStyle(CrateColor.secondaryText)
-                        .font(.subheadline)
+                        .foregroundStyle(CrateColor.secondaryText).font(.subheadline)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
+                .padding(.horizontal, 16).padding(.top, 16)
 
                 if model.isLoading {
                     Spacer(); ProgressView().tint(.white); Spacer()

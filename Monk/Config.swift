@@ -8,7 +8,7 @@ enum APIConfig {
 }
 
 enum PlaybackConfig {
-    static let preferredSources: [MusicSource] = [.youtube, .yandex, .preview]
+    static let preferredSources: [MusicSource] = [.yandex, .preview]
     static let yandexToken = ""
     static let yandexXToken = ""
     static let yandexUserID = 0
