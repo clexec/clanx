@@ -18,24 +18,16 @@ jobs:
           sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
           xcodebuild -version
 
-      - name: Build YouTubeKit framework
+      - name: Inline YouTubeKit sources into Monk
         run: |
-          cd Packages/YouTubeKit
-          xcodebuild build \
-            -scheme YouTubeKit \
-            -destination "generic/platform=iOS" \
-            -derivedDataPath /tmp/yt-build \
-            BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
-            SKIP_INSTALL=NO \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            2>&1 | tail -10
-          YTFW=$(find /tmp/yt-build/Build/Products -name "YouTubeKit.framework" -type d | head -1)
-          echo "YouTubeKit.framework: $YTFW"
-          echo "YTKIT_DIR=$(dirname "$YTFW")" >> $GITHUB_ENV
+          # Copy YouTubeKit Swift sources directly into Monk — PBXFileSystemSynchronizedRootGroup picks them up automatically
+          mkdir -p Monk/Services/Stream/YouTubeKitInline
+          cp -r Packages/YouTubeKit/Sources/YouTubeKit/. Monk/Services/Stream/YouTubeKitInline/
+          # Remove import statement since types are now in the same module
+          sed -i '' 's/^import YouTubeKit$/\/\/ YouTubeKit inlined/' Monk/Services/Stream/YouTubeStreamResolver.swift
+          echo "Inlined $(find Monk/Services/Stream/YouTubeKitInline -name '*.swift' | wc -l) Swift files"
 
-      - name: Stub YMAPI-dependent files only
+      - name: Stub YMAPI-dependent files
         run: |
           cat > Monk/Services/Stream/YandexMusicClient.swift << 'SWIFT'
           import Foundation
@@ -64,9 +56,6 @@ jobs:
             -configuration Release \
             -destination "generic/platform=iOS" \
             -archivePath "$RUNNER_TEMP/Monk.xcarchive" \
-            FRAMEWORK_SEARCH_PATHS="\"$YTKIT_DIR\" \$(inherited)" \
-            OTHER_SWIFT_FLAGS="-F \"$YTKIT_DIR\" \$(inherited)" \
-            OTHER_LDFLAGS="-framework YouTubeKit \$(inherited)" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
@@ -80,9 +69,6 @@ jobs:
           IPA_DIR="$RUNNER_TEMP/ipa"
           mkdir -p "$IPA_DIR/Payload"
           cp -r "$APPS_PATH/Monk.app" "$IPA_DIR/Payload/"
-          # Bundle YouTubeKit framework inside IPA
-          mkdir -p "$IPA_DIR/Payload/Monk.app/Frameworks"
-          cp -r "$YTKIT_DIR/YouTubeKit.framework" "$IPA_DIR/Payload/Monk.app/Frameworks/" 2>/dev/null || true
           cd "$IPA_DIR"
           zip -r Monk.ipa Payload/
           echo "IPA: $(ls -lh Monk.ipa)"
