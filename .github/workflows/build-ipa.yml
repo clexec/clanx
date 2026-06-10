@@ -18,14 +18,33 @@ jobs:
           sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
           xcodebuild -version
 
-      - name: Inline YouTubeKit sources into Monk
+      - name: Inline YouTubeKit sources
         run: |
-          # Copy YouTubeKit Swift sources directly into Monk — PBXFileSystemSynchronizedRootGroup picks them up automatically
           mkdir -p Monk/Services/Stream/YouTubeKitInline
           cp -r Packages/YouTubeKit/Sources/YouTubeKit/. Monk/Services/Stream/YouTubeKitInline/
-          # Remove import statement since types are now in the same module
-          sed -i '' 's/^import YouTubeKit$/\/\/ YouTubeKit inlined/' Monk/Services/Stream/YouTubeStreamResolver.swift
-          echo "Inlined $(find Monk/Services/Stream/YouTubeKitInline -name '*.swift' | wc -l) Swift files"
+
+          # Add missing system imports to every file
+          find Monk/Services/Stream/YouTubeKitInline -name "*.swift" | while read f; do
+            grep -q "^import Foundation" "$f" || sed -i '' '1s/^/import Foundation\n/' "$f"
+            grep -q "^import CoreGraphics" "$f" || sed -i '' '1s/^/import CoreGraphics\n/' "$f"
+          done
+
+          # Remove self-referencing import and module-qualified type prefixes
+          find Monk/Services/Stream/YouTubeKitInline -name "*.swift" -exec \
+            sed -i '' \
+              -e 's/^import YouTubeKit$/\/\/ inlined/g' \
+              -e 's/YouTubeKit\.//g' \
+            {} \;
+
+          # Replace Bundle.module (SPM-only) with Bundle.main so JS resources load from app bundle
+          find Monk/Services/Stream/YouTubeKitInline -name "*.swift" -exec \
+            sed -i '' 's/Bundle\.module/Bundle.main/g' {} \;
+
+          # Remove import from resolver (types now in same module)
+          sed -i '' 's/^\/\/ YouTubeKit inlined$//' Monk/Services/Stream/YouTubeStreamResolver.swift
+          sed -i '' 's/^import YouTubeKit$/\/\/ inlined/' Monk/Services/Stream/YouTubeStreamResolver.swift
+
+          echo "Inlined $(find Monk/Services/Stream/YouTubeKitInline -name '*.swift' | wc -l) files"
 
       - name: Stub YMAPI-dependent files
         run: |
