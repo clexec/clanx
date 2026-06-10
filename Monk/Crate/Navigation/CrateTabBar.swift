@@ -1,5 +1,6 @@
 import SwiftUI
 
+// Proper iOS 26 Liquid Glass nav bar using GlassEffectContainer
 struct CrateTabBar: View {
     @Binding var selection: Int
     let onSearch: () -> Void
@@ -11,25 +12,28 @@ struct CrateTabBar: View {
     ]
 
     var body: some View {
-        HStack(spacing: 4) {
-            // Unified glass bar with all three tabs
-            HStack(spacing: 0) {
-                ForEach(items.indices, id: \.self) { tabButton($0) }
-            }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 6)
-            .glassEffect(.regular, in: Capsule())
+        // GlassEffectContainer required for adjacent glass elements to merge
+        GlassEffectContainer(spacing: 8) {
+            HStack(spacing: 4) {
+                // Unified tab group — single glass capsule
+                HStack(spacing: 0) {
+                    ForEach(items.indices, id: \.self) { tabButton($0) }
+                }
+                .padding(.horizontal, 6)
+                .padding(.vertical, 6)
+                .glassEffect(.regular, in: Capsule())
 
-            // Separate search glass circle
-            Button(action: onSearch) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 50, height: 50)
-                    .contentShape(Circle())
+                // Search button — separate glass circle that merges with tab bar
+                Button(action: onSearch) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 50, height: 50)
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .glassEffect(.regular.interactive(), in: Circle())
             }
-            .buttonStyle(.plain)
-            .glassEffect(.regular, in: Circle())
         }
     }
 
@@ -55,9 +59,7 @@ struct CrateTabBar: View {
             .padding(.vertical, 10)
             .background {
                 if active {
-                    Capsule()
-                        .fill(.white.opacity(0.18))
-                        .transition(.opacity)
+                    Capsule().fill(.white.opacity(0.2)).transition(.opacity)
                 }
             }
             .contentShape(Capsule())

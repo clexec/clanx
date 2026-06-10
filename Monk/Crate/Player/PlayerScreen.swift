@@ -7,7 +7,20 @@ struct PlayerScreen: View {
 
     var body: some View {
         ZStack {
-            CrateColor.background.ignoresSafeArea()
+            // Dark gradient so glass effect is always visible
+            ZStack {
+                Color.black.ignoresSafeArea()
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.12, green: 0.07, blue: 0.22),
+                        Color(red: 0.05, green: 0.07, blue: 0.18),
+                        Color.black
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+            }
             if let track = player.currentTrack {
                 playing(track)
             } else {
@@ -43,30 +56,33 @@ struct PlayerScreen: View {
                 }
                 .padding(.top, 24).padding(.horizontal, 24)
 
-                HStack(spacing: 36) {
-                    CircleGlassButton(systemName: "backward.fill", size: 62) {
-                        player.previous()
-                    }
-                    ZStack {
-                        CircleGlassButton(
-                            systemName: isPlaying ? "pause.fill" : "play.fill",
-                            size: 80, iconScale: 0.35
-                        ) { player.toggle() }
-                        if isLoading {
-                            ProgressView()
-                                .tint(.white)
-                                .scaleEffect(1.2)
-                                .allowsHitTesting(false)
+                // Playback controls in GlassEffectContainer for proper merging
+                GlassEffectContainer(spacing: 12) {
+                    HStack(spacing: 36) {
+                        CircleGlassButton(systemName: "backward.fill", size: 62) {
+                            player.previous()
                         }
-                    }
-                    CircleGlassButton(systemName: "forward.fill", size: 62) {
-                        player.next()
+                        ZStack {
+                            CircleGlassButton(
+                                systemName: isPlaying ? "pause.fill" : "play.fill",
+                                size: 80, iconScale: 0.35
+                            ) { player.toggle() }
+                            if isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                                    .scaleEffect(1.2)
+                                    .allowsHitTesting(false)
+                            }
+                        }
+                        CircleGlassButton(systemName: "forward.fill", size: 62) {
+                            player.next()
+                        }
                     }
                 }
                 .padding(.top, 32)
                 .zIndex(10)
 
-                // Bottom glass block
+                // Bottom glass block — no .background() wrapper, glassEffect directly
                 VStack(spacing: 20) {
                     progressBlock
                     volumeBlock

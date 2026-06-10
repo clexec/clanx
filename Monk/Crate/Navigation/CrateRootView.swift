@@ -8,7 +8,20 @@ struct CrateRootView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            CrateColor.background.ignoresSafeArea()
+            // Gradient background — glass needs color behind it to be visible
+            ZStack {
+                Color.black.ignoresSafeArea()
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.10, green: 0.07, blue: 0.18),
+                        Color(red: 0.05, green: 0.07, blue: 0.15),
+                        Color.black
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+            }
             screen
                 .safeAreaInset(edge: .bottom) {
                     Color.clear.frame(height: player.currentTrack != nil ? 130 : 80)

@@ -1,5 +1,6 @@
 import SwiftUI
 
+// CircleGlassButton with .interactive() for proper Liquid Glass bounce/shimmer
 struct CircleGlassButton: View {
     let systemName: String
     var size: CGFloat = 64
@@ -15,7 +16,7 @@ struct CircleGlassButton: View {
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .glassEffect(.regular, in: Circle())
+        .glassEffect(.regular.interactive(), in: Circle())
         .frame(width: size, height: size)
     }
 }
