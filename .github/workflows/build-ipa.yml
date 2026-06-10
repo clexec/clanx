@@ -1,0 +1,56 @@
+name: Build IPA
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select latest Xcode
+        run: |
+          ls /Applications/Xcode*.app | sort -V | tail -1
+          sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+          xcodebuild -version
+
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project Monk.xcodeproj \
+            -scheme Monk
+
+      - name: Build Archive
+        run: |
+          xcodebuild archive \
+            -project Monk.xcodeproj \
+            -scheme Monk \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath "$RUNNER_TEMP/Monk.xcarchive" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty || true
+
+      - name: Create unsigned IPA
+        run: |
+          APPS_PATH="$RUNNER_TEMP/Monk.xcarchive/Products/Applications"
+          IPA_DIR="$RUNNER_TEMP/ipa"
+          mkdir -p "$IPA_DIR/Payload"
+          cp -r "$APPS_PATH/Monk.app" "$IPA_DIR/Payload/"
+          cd "$IPA_DIR"
+          zip -r Monk.ipa Payload/
+          echo "IPA created: $(ls -lh Monk.ipa)"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Monk-unsigned
+          path: ${{ runner.temp }}/ipa/Monk.ipa
+          retention-days: 14
