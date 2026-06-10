@@ -23,6 +23,11 @@
                 };
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXBuildFile section */
+                AA00112233445500 /* YMAPI in Frameworks */ = {isa = PBXBuildFile; productRef = AA00112233445502 /* YMAPI */; };
+                AA00112233445501 /* YouTubeKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA00112233445503 /* YouTubeKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
                 105FC57A2E9EAD3100EA8BCF /* Monk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Monk.app; sourceTree = BUILT_PRODUCTS_DIR; };
                 105FC5892E9EAD3200EA8BCF /* MonkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MonkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -52,6 +57,8 @@
                         isa = PBXFrameworksBuildPhase;
                         buildActionMask = 2147483647;
                         files = (
+                                AA00112233445500 /* YMAPI in Frameworks */,
+                                AA00112233445501 /* YouTubeKit in Frameworks */,
                         );
                         runOnlyForDeploymentPostprocessing = 0;
                 };
@@ -112,6 +119,8 @@
                         );
                         name = Monk;
                         packageProductDependencies = (
+                                AA00112233445502 /* YMAPI */,
+                                AA00112233445503 /* YouTubeKit */,
                         );
                         productName = Monk;
                         productReference = 105FC57A2E9EAD3100EA8BCF /* Monk.app */;
@@ -200,6 +209,10 @@
                         productRefGroup = 105FC57B2E9EAD3100EA8BCF /* Products */;
                         projectDirPath = "";
                         projectRoot = "";
+                        packages = (
+                                AA00112233445504 /* XCLocalSwiftPackageReference "Packages/YMAPI" */,
+                                AA00112233445505 /* XCLocalSwiftPackageReference "Packages/YouTubeKit" */,
+                        );
                         targets = (
                                 105FC5792E9EAD3100EA8BCF /* Monk */,
                                 105FC5882E9EAD3200EA8BCF /* MonkTests */,
@@ -268,6 +281,30 @@
                         targetProxy = 105FC5942E9EAD3200EA8BCF /* PBXContainerItemProxy */;
                 };
 /* End PBXTargetDependency section */
+
+/* Begin XCLocalSwiftPackageReference section */
+                AA00112233445504 /* XCLocalSwiftPackageReference "Packages/YMAPI" */ = {
+                        isa = XCLocalSwiftPackageReference;
+                        relativePath = Packages/YMAPI;
+                };
+                AA00112233445505 /* XCLocalSwiftPackageReference "Packages/YouTubeKit" */ = {
+                        isa = XCLocalSwiftPackageReference;
+                        relativePath = Packages/YouTubeKit;
+                };
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+                AA00112233445502 /* YMAPI */ = {
+                        isa = XCSwiftPackageProductDependency;
+                        package = AA00112233445504 /* XCLocalSwiftPackageReference "Packages/YMAPI" */;
+                        productName = YMAPI;
+                };
+                AA00112233445503 /* YouTubeKit */ = {
+                        isa = XCSwiftPackageProductDependency;
+                        package = AA00112233445505 /* XCLocalSwiftPackageReference "Packages/YouTubeKit" */;
+                        productName = YouTubeKit;
+                };
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
                 105FC59B2E9EAD3200EA8BCF /* Debug */ = {
