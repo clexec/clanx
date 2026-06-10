@@ -29,6 +29,10 @@ jobs:
             grep -q "^import CoreGraphics" "$f" || sed -i '' '1s/^/import CoreGraphics\n/' "$f"
           done
 
+          # Remove deprecated typealias X = YouTubeKit.X BEFORE stripping prefix (prevents self-reference)
+          find Monk/Services/Stream/YouTubeKitInline -name "*.swift" -exec \
+            sed -i '' '/typealias.*= YouTubeKit\./d' {} \;
+
           # Remove self-referencing import and module-qualified type prefixes
           find Monk/Services/Stream/YouTubeKitInline -name "*.swift" -exec \
             sed -i '' \
