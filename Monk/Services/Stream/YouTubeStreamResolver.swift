@@ -7,12 +7,11 @@ struct YouTubeStreamResolver: StreamResolving {
 
     func resolveStreamURL(for track: Track) async -> URL? {
         guard let videoId = await findVideoId(for: track) else { return nil }
-        return await fullAudioURL(videoId: videoId)
+        return await audioURL(videoId: videoId)
     }
 
-    // Step 1: search for the track, get videoId
     private func findVideoId(for track: Track) async -> String? {
-        let query = "\(track.artistName) \(track.title) full song audio"
+        let query = "\(track.artistName) \(track.title) full audio"
         guard let response = try? await SearchResponse.sendThrowingRequest(
             youtubeModel: model,
             data: [.query: query]
@@ -20,35 +19,23 @@ struct YouTubeStreamResolver: StreamResolving {
         return response.results.lazy.compactMap { $0 as? YTVideo }.first?.videoId
     }
 
-    // Step 2: fetch full streaming formats using .videoId (NOT .query — that gives 30s preview)
-    private func fullAudioURL(videoId: String) async -> URL? {
-        // Primary: streaming infos — direct playback URLs, full duration
-        if let url = await streamingInfoURL(videoId: videoId) { return url }
-        // Fallback: download formats
-        return await downloadFormatURL(videoId: videoId)
-    }
-
-    private func streamingInfoURL(videoId: String) async -> URL? {
-        guard let response = try? await VideoInfosWithStreamingInfosResponse.sendThrowingRequest(
-            youtubeModel: model,
-            data: [.videoId: videoId]
-        ) else { return nil }
-
-        let formats = response.streamingInfos
-            .compactMap { $0 as? AudioOnlyFormat }
-            .filter { $0.url != nil }
-        return formats.max { ($0.averageBitrate ?? 0) < ($1.averageBitrate ?? 0) }?.url
-    }
-
-    private func downloadFormatURL(videoId: String) async -> URL? {
+    private func audioURL(videoId: String) async -> URL? {
+        // .query key accepts videoId — validated by .videoIdValidator in this response type
         guard let response = try? await VideoInfosWithDownloadFormatsResponse.sendThrowingRequest(
             youtubeModel: model,
-            data: [.videoId: videoId]  // .videoId — not .query
+            data: [.query: videoId]
         ) else { return nil }
 
-        let formats = response.downloadFormats
+        // Prefer audio-only mp4, highest bitrate
+        let audioFormats = response.downloadFormats
             .compactMap { $0 as? AudioOnlyFormat }
             .filter { $0.url != nil }
-        return formats.max { ($0.averageBitrate ?? 0) < ($1.averageBitrate ?? 0) }?.url
+
+        if let best = audioFormats.max(by: { ($0.averageBitrate ?? 0) < ($1.averageBitrate ?? 0) }) {
+            return best.url
+        }
+
+        // Fallback: any default mp4 format
+        return response.defaultFormats.first { ($0.mimeType ?? "").contains("mp4") }?.url
     }
 }
