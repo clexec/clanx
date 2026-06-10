@@ -112,14 +112,17 @@ struct PlayerScreen: View {
             set: { player.audio.seek(to: $0) }
         )
         let duration = max(player.audio.duration, 1)
-        return VStack(spacing: 8) {
+        return VStack(spacing: 6) {
+            // Native Slider with glass track — liquid glass container from parent
+            Slider(value: progress, in: 0...duration)
+                .tint(.white)
+                .padding(.horizontal, 4)
             HStack {
                 Text(TimeFormatHelper.format(milliseconds: Int(progress.wrappedValue * 1000)))
                 Spacer()
                 Text("-" + TimeFormatHelper.format(milliseconds: Int(max(0, duration - progress.wrappedValue) * 1000)))
             }
-            .font(.caption).foregroundStyle(CrateColor.secondaryText)
-            SliderTrack(value: progress, total: duration)
+            .font(.caption2).foregroundStyle(CrateColor.secondaryText)
         }
     }
 
@@ -128,12 +131,13 @@ struct PlayerScreen: View {
             get: { Double(player.audio.volume) },
             set: { player.audio.volume = Float($0) }
         )
-        return HStack(spacing: 12) {
-            Image(systemName: "speaker.fill")
-            SliderTrack(value: volume, total: 1)
-            Image(systemName: "speaker.wave.3.fill")
+        return HStack(spacing: 10) {
+            Image(systemName: "speaker.fill").font(.caption)
+            Slider(value: volume, in: 0...1)
+                .tint(.white)
+            Image(systemName: "speaker.wave.3.fill").font(.caption)
         }
-        .font(.footnote).foregroundStyle(CrateColor.secondaryText)
+        .foregroundStyle(CrateColor.secondaryText)
     }
 
     private var emptyState: some View {

@@ -6,7 +6,6 @@ struct LyricsCommentsScreen: View {
     @EnvironmentObject private var auth: AuthenticationManager
     @EnvironmentObject private var player: PlayerManager
     @Environment(\.dismiss) private var dismiss
-    @State private var tab = 1
     @State private var draft = ""
 
     private var comments: [Comment] {
@@ -18,18 +17,28 @@ struct LyricsCommentsScreen: View {
     var body: some View {
         ZStack {
             CrateColor.background.ignoresSafeArea()
-            VStack(spacing: 16) {
-                header
-                SegmentedGlass(selection: $tab, titles: [bi("Текст", "Lyrics"), bi("Комментарии", "Comments")])
-                    .padding(.horizontal, 20)
-                if tab == 0 { lyricsTab } else { commentsTab }
+            VStack(spacing: 0) {
+                header.padding(.bottom, 8)
+
+                // Native TabView for Lyrics / Comments
+                TabView {
+                    Tab(bi("Текст", "Lyrics"), systemImage: "text.quote") {
+                        lyricsTab
+                    }
+                    Tab(bi("Комментарии", "Comments"), systemImage: "bubble.left") {
+                        commentsTab
+                    }
+                }
             }
         }
     }
 
     private var header: some View {
         ZStack {
-            Text(track.title).font(.headline).foregroundStyle(.white).lineLimit(1)
+            VStack(spacing: 4) {
+                Text(track.title).font(.headline).foregroundStyle(.white).lineLimit(1)
+                Text(track.artistName).font(.caption).foregroundStyle(CrateColor.secondaryText).lineLimit(1)
+            }
             HStack {
                 Button(bi("Готово", "Done")) { dismiss() }
                     .font(.subheadline.weight(.medium)).foregroundStyle(.white)
@@ -41,22 +50,26 @@ struct LyricsCommentsScreen: View {
     }
 
     private var lyricsTab: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 16) {
             Spacer()
-            Image(systemName: "text.quote").font(.system(size: 34)).foregroundStyle(CrateColor.secondaryText)
+            Image(systemName: "text.quote")
+                .font(.system(size: 40)).foregroundStyle(CrateColor.secondaryText)
             Text(bi("Текст пока недоступен", "Lyrics not available yet"))
                 .font(.subheadline).foregroundStyle(CrateColor.secondaryText)
+                .multilineTextAlignment(.center)
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(CrateColor.background)
     }
 
     private var commentsTab: some View {
         VStack(spacing: 0) {
             if comments.isEmpty {
-                VStack(spacing: 12) {
+                VStack(spacing: 16) {
                     Spacer()
-                    Image(systemName: "bubble.left").font(.system(size: 34)).foregroundStyle(CrateColor.secondaryText)
+                    Image(systemName: "bubble.left")
+                        .font(.system(size: 40)).foregroundStyle(CrateColor.secondaryText)
                     Text(bi("Пока нет комментариев", "No comments yet"))
                         .font(.subheadline).foregroundStyle(CrateColor.secondaryText)
                     Spacer()
@@ -64,7 +77,7 @@ struct LyricsCommentsScreen: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 22) {
+                    LazyVStack(alignment: .leading, spacing: 20) {
                         ForEach(comments) { comment in
                             CommentRow(comment: comment) { replyText in
                                 let user = auth.currentUser
@@ -85,6 +98,7 @@ struct LyricsCommentsScreen: View {
             }
             CommentComposer(text: $draft, onSend: send)
         }
+        .background(CrateColor.background)
     }
 
     private func send() {
