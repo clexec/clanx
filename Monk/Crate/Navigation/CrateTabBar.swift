@@ -18,11 +18,15 @@ struct CrateTabBar: View {
                 }
             }
             .padding(6)
+            .contentShape(Capsule())
             .glassEffect(.regular, in: Capsule())
 
             Button(action: onSearch) {
-                Image(systemName: "magnifyingglass").font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white).frame(width: 52, height: 52)
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 52, height: 52)
+                    .contentShape(Circle())
             }
             .buttonStyle(.plain)
             .glassEffect(.regular, in: Circle())
@@ -31,14 +35,21 @@ struct CrateTabBar: View {
 
     private func tab(_ index: Int) -> some View {
         let active = selection == index
-        return Button { selection = index } label: {
+        return Button {
+            selection = index
+        } label: {
             HStack(spacing: 6) {
                 Image(systemName: items[index].symbol)
-                if active { Text(bi(items[index].ru, items[index].en)).font(.footnote.weight(.semibold)) }
+                if active {
+                    Text(bi(items[index].ru, items[index].en))
+                        .font(.footnote.weight(.semibold))
+                }
             }
             .foregroundStyle(active ? .white : CrateColor.secondaryText)
-            .padding(.horizontal, active ? 16 : 12).padding(.vertical, 10)
+            .padding(.horizontal, active ? 16 : 12)
+            .padding(.vertical, 10)
             .background { if active { Capsule().fill(CrateColor.surfaceElevated) } }
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
     }

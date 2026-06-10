@@ -50,19 +50,24 @@ struct PlayerScreen: View {
             }
             .padding(.top, 28)
 
-            VStack(spacing: 18) {
+            // Bottom glass block
+            VStack(spacing: 20) {
                 progressSection(progress)
                 VolumeRow(value: volume)
+                PlayerActionsBar(
+                    isLiked: library.isLiked(track),
+                    onLike: { library.toggleLike(track) },
+                    onComments: { showLyrics = true }
+                )
             }
-            .padding(.top, 28).padding(.horizontal, 28)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 24)
+            .frame(maxWidth: .infinity)
+            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .padding(.horizontal, 16)
+            .padding(.top, 28)
 
-            Spacer()
-            PlayerActionsBar(
-                isLiked: library.isLiked(track),
-                onLike: { library.toggleLike(track) },
-                onComments: { showLyrics = true }
-            )
-            .padding(.horizontal, 28).padding(.bottom, 8)
+            Spacer(minLength: 16)
         }
     }
 
