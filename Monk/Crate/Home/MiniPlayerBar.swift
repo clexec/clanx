@@ -15,9 +15,10 @@ struct MiniPlayerBar: View {
                 Button { player.toggle() } label: {
                     Image(systemName: player.audio.state == .playing ? "pause.fill" : "play.fill")
                         .font(.system(size: 16, weight: .bold)).foregroundStyle(.white)
-                        .frame(width: 40, height: 40).background(Color.blue, in: Circle())
+                        .frame(width: 40, height: 40).contentShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .crateGlass(Circle())
             }
             .padding(8).crateGlass(Capsule())
         }

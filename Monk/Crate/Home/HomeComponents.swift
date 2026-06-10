@@ -7,7 +7,7 @@ struct SearchField: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "magnifyingglass").font(.system(size: 15, weight: .bold))
-                .foregroundStyle(.white).frame(width: 30, height: 30).background(Color.blue, in: Circle())
+                .foregroundStyle(.white).frame(width: 30, height: 30).crateGlass(Circle())
             TextField(bi("Поиск", "Search"), text: $text)
                 .textFieldStyle(.plain).foregroundStyle(.white)
                 .submitLabel(.search).onSubmit(onSubmit)
@@ -36,10 +36,11 @@ struct FilterChips: View {
         let label = Text(titles[index]).font(.subheadline.weight(.semibold))
             .padding(.horizontal, 18).padding(.vertical, 10)
         if selection == index {
-            label.foregroundStyle(.black).background(.white, in: Capsule())
+            label.foregroundStyle(.white).crateGlass(Capsule())
+                .overlay(Capsule().strokeBorder(.white.opacity(0.5), lineWidth: 1))
                 .onTapGesture { onSelect(index) }
         } else {
-            label.foregroundStyle(.white).crateGlass(Capsule())
+            label.foregroundStyle(CrateColor.secondaryText).crateGlass(Capsule())
                 .onTapGesture { onSelect(index) }
         }
     }

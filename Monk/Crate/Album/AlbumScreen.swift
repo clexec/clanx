@@ -52,11 +52,12 @@ struct AlbumScreen: View {
         HStack(spacing: 14) {
             Button { play(shuffled: false) } label: {
                 Label(bi("Слушать", "Play"), systemImage: "play.fill")
-                    .font(.headline).foregroundStyle(.black)
+                    .font(.headline).foregroundStyle(.white)
                     .frame(maxWidth: .infinity).padding(.vertical, 14)
-                    .background(.white, in: Capsule())
+                    .contentShape(Capsule())
             }
             .buttonStyle(.plain)
+            .crateGlass(Capsule())
             Button { play(shuffled: true) } label: {
                 Label(bi("Перемешать", "Shuffle"), systemImage: "shuffle")
                     .font(.headline).foregroundStyle(.white)
