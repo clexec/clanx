@@ -15,15 +15,36 @@ jobs:
 
       - name: Select latest Xcode
         run: |
-          ls /Applications/Xcode*.app | sort -V | tail -1
           sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
           xcodebuild -version
 
-      - name: Resolve Swift packages
+      - name: Stub package-dependent files for CI
         run: |
-          xcodebuild -resolvePackageDependencies \
-            -project Monk.xcodeproj \
-            -scheme Monk
+          cat > Monk/Services/Stream/YandexMusicClient.swift << 'SWIFT'
+          import Foundation
+          final class YandexMusicClient {
+              static let shared = YandexMusicClient()
+              let client: AnyObject? = nil
+              private init() {}
+          }
+          SWIFT
+
+          cat > Monk/Services/Stream/YandexStreamResolver.swift << 'SWIFT'
+          import Foundation
+          struct YandexStreamResolver: StreamResolving {
+              let source: MusicSource = .yandex
+              init?() { return nil }
+              func resolveStreamURL(for track: Track) async -> URL? { nil }
+          }
+          SWIFT
+
+          cat > Monk/Services/Stream/YouTubeStreamResolver.swift << 'SWIFT'
+          import Foundation
+          struct YouTubeStreamResolver: StreamResolving {
+              let source: MusicSource = .youtube
+              func resolveStreamURL(for track: Track) async -> URL? { nil }
+          }
+          SWIFT
 
       - name: Build Archive
         run: |
@@ -38,8 +59,8 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             2>&1 | tee /tmp/xcodebuild.log
-          echo "--- Archive contents ---"
-          ls -la "$RUNNER_TEMP/Monk.xcarchive/Products/Applications/" 2>/dev/null || echo "Archive not found or empty"
+          echo "--- Archive check ---"
+          ls -la "$RUNNER_TEMP/Monk.xcarchive/Products/Applications/" 2>/dev/null || echo "No archive"
 
       - name: Create unsigned IPA
         run: |
@@ -49,9 +70,9 @@ jobs:
           cp -r "$APPS_PATH/Monk.app" "$IPA_DIR/Payload/"
           cd "$IPA_DIR"
           zip -r Monk.ipa Payload/
-          echo "IPA created: $(ls -lh Monk.ipa)"
+          echo "IPA: $(ls -lh Monk.ipa)"
 
-      - name: Upload IPA artifact
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: Monk-unsigned

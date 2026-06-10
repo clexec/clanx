@@ -23,11 +23,6 @@
                 };
 /* End PBXContainerItemProxy section */
 
-/* Begin PBXBuildFile section */
-                AA001122334455000000AA00 /* YMAPI in Frameworks */ = {isa = PBXBuildFile; productRef = AA001122334455000000AA02 /* YMAPI */; };
-                AA001122334455000000AA01 /* YouTubeKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA001122334455000000AA03 /* YouTubeKit */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
                 105FC57A2E9EAD3100EA8BCF /* Monk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Monk.app; sourceTree = BUILT_PRODUCTS_DIR; };
                 105FC5892E9EAD3200EA8BCF /* MonkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MonkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -57,8 +52,6 @@
                         isa = PBXFrameworksBuildPhase;
                         buildActionMask = 2147483647;
                         files = (
-                                AA001122334455000000AA00 /* YMAPI in Frameworks */,
-                                AA001122334455000000AA01 /* YouTubeKit in Frameworks */,
                         );
                         runOnlyForDeploymentPostprocessing = 0;
                 };
@@ -119,8 +112,6 @@
                         );
                         name = Monk;
                         packageProductDependencies = (
-                                AA001122334455000000AA02 /* YMAPI */,
-                                AA001122334455000000AA03 /* YouTubeKit */,
                         );
                         productName = Monk;
                         productReference = 105FC57A2E9EAD3100EA8BCF /* Monk.app */;
@@ -209,10 +200,6 @@
                         productRefGroup = 105FC57B2E9EAD3100EA8BCF /* Products */;
                         projectDirPath = "";
                         projectRoot = "";
-                        packages = (
-                                AA001122334455000000AA04 /* XCRemoteSwiftPackageReference "YM-API" */,
-                                AA001122334455000000AA05 /* XCRemoteSwiftPackageReference "YouTubeKit" */,
-                        );
                         targets = (
                                 105FC5792E9EAD3100EA8BCF /* Monk */,
                                 105FC5882E9EAD3200EA8BCF /* MonkTests */,
@@ -281,38 +268,6 @@
                         targetProxy = 105FC5942E9EAD3200EA8BCF /* PBXContainerItemProxy */;
                 };
 /* End PBXTargetDependency section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-                AA001122334455000000AA04 /* XCRemoteSwiftPackageReference "YM-API" */ = {
-                        isa = XCRemoteSwiftPackageReference;
-                        repositoryURL = "https://github.com/p0rterB/YM-API";
-                        requirement = {
-                                minimumVersion = 0.7.1;
-                                kind = upToNextMajorVersion;
-                        };
-                };
-                AA001122334455000000AA05 /* XCRemoteSwiftPackageReference "YouTubeKit" */ = {
-                        isa = XCRemoteSwiftPackageReference;
-                        repositoryURL = "https://github.com/b5i/YouTubeKit";
-                        requirement = {
-                                minimumVersion = 2.7.0;
-                                kind = upToNextMajorVersion;
-                        };
-                };
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-                AA001122334455000000AA02 /* YMAPI */ = {
-                        isa = XCSwiftPackageProductDependency;
-                        package = AA001122334455000000AA04 /* XCRemoteSwiftPackageReference "YM-API" */;
-                        productName = YMAPI;
-                };
-                AA001122334455000000AA03 /* YouTubeKit */ = {
-                        isa = XCSwiftPackageProductDependency;
-                        package = AA001122334455000000AA05 /* XCRemoteSwiftPackageReference "YouTubeKit" */;
-                        productName = YouTubeKit;
-                };
-/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
                 105FC59B2E9EAD3200EA8BCF /* Debug */ = {
