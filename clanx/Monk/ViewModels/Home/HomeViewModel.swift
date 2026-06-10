@@ -7,7 +7,7 @@ final class HomeViewModel: ObservableObject {
     @Published var releaseRadar: [Track] = []
     @Published var dailyMixes: [Playlist] = []
     @Published var popular: [Track] = []
-    private let tracks = TrackRepository(api: JioSaavnAPIService())
+    private let tracks = TrackRepository(api: ITunesAPIService())
     private let playlists = PlaylistRepository()
 
     func load() async {

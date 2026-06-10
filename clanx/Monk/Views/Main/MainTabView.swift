@@ -56,9 +56,16 @@ struct MainTabView: View {
             }
             customTabBar
         }
-        .padding(.top, 8)
+        .padding(.top, 10)
         .padding(.bottom, 28)
-        .background(Color.clear)
+        .background(
+            LinearGradient(
+                colors: [.black.opacity(0), .black.opacity(0.94)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea(edges: .bottom)
+        )
     }
 
     // MARK: - Custom tab bar
