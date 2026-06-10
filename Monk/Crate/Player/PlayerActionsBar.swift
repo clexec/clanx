@@ -14,15 +14,15 @@ struct PlayerActionsBar: View {
         HStack {
             likeButton
             Spacer()
-            actionIcon("bubble.left", action: onComments)
+            glassIcon("bubble.left", action: onComments)
             Spacer()
-            AirPlayIcon().frame(width: 36, height: 36)
+            airPlayButton
             Spacer()
-            actionIcon("forward.end.fill") {
+            glassIcon("forward.end.fill") {
                 player.audio.seek(to: max(0, player.audio.duration - 0.5))
             }
             Spacer()
-            actionIcon("square.and.arrow.up") { showShare = true }
+            glassIcon("square.and.arrow.up") { showShare = true }
         }
         .sheet(isPresented: $showShare) {
             if let track = player.currentTrack {
@@ -32,6 +32,7 @@ struct PlayerActionsBar: View {
         }
     }
 
+    // Like button — bounce animation + red tint when liked
     private var likeButton: some View {
         Button {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
@@ -41,32 +42,42 @@ struct PlayerActionsBar: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { likeBounce = false }
         } label: {
             Image(systemName: isLiked ? "heart.fill" : "heart")
-                .font(.system(size: 22, weight: .regular))
-                .foregroundStyle(isLiked ? .red : CrateColor.secondaryText)
+                .font(.system(size: 20, weight: .regular))
+                .foregroundStyle(isLiked ? .red : .white)
                 .scaleEffect(likeBounce ? 1.35 : 1.0)
-                .frame(width: 36, height: 36)
-                .contentShape(Rectangle())
+                .frame(width: 44, height: 44)
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        .crateGlassInteractive(Circle())
         .animation(.spring(response: 0.3, dampingFraction: 0.5), value: isLiked)
     }
 
-    private func actionIcon(_ name: String, action: @escaping () -> Void) -> some View {
+    // AirPlay — wrapped in glass circle
+    private var airPlayButton: some View {
+        AirPlayIcon()
+            .frame(width: 44, height: 44)
+            .crateGlass(Circle())
+    }
+
+    // Generic glass icon button
+    private func glassIcon(_ name: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: name)
-                .font(.system(size: 20, weight: .regular))
-                .foregroundStyle(CrateColor.secondaryText)
-                .frame(width: 36, height: 36)
-                .contentShape(Rectangle())
+                .font(.system(size: 18, weight: .regular))
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        .crateGlassInteractive(Circle())
     }
 }
 
 private struct AirPlayIcon: UIViewRepresentable {
     func makeUIView(context: Context) -> AVRoutePickerView {
         let v = AVRoutePickerView()
-        v.tintColor = UIColor(white: 0.62, alpha: 1)
+        v.tintColor = .white
         v.activeTintColor = .white
         return v
     }

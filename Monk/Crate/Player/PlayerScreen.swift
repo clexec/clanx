@@ -56,8 +56,8 @@ struct PlayerScreen: View {
                 }
                 .padding(.top, 24).padding(.horizontal, 24)
 
-                // Playback controls in GlassEffectContainer for proper merging
-                GlassEffectContainer(spacing: 12) {
+                // Playback controls — GlassEffectContainer merges adjacent glass circles
+                GlassEffectContainer(spacing: 16) {
                     HStack(spacing: 36) {
                         CircleGlassButton(systemName: "backward.fill", size: 62) {
                             player.previous()
@@ -96,7 +96,7 @@ struct PlayerScreen: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 22)
                 .frame(maxWidth: .infinity)
-                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+                .crateGlass(RoundedRectangle(cornerRadius: 28, style: .continuous))
                 .padding(.horizontal, 16)
                 .padding(.top, 28)
                 .zIndex(1)

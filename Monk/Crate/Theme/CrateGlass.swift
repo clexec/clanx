@@ -1,12 +1,20 @@
 import SwiftUI
 
-// All glass calls go through here — .interactive() for controls, .regular for containers
+// Unified glass helpers — matches Mono's .glassEffect(in:) API
 extension View {
     func crateGlass<S: Shape>(_ shape: S) -> some View {
-        glassEffect(.regular, in: shape)
+        #if compiler(>=6.2)
+        glassEffect(in: shape)
+        #else
+        background(.ultraThinMaterial, in: shape)
+        #endif
     }
 
     func crateGlassInteractive<S: Shape>(_ shape: S) -> some View {
+        #if compiler(>=6.2)
         glassEffect(.regular.interactive(), in: shape)
+        #else
+        background(.ultraThinMaterial, in: shape)
+        #endif
     }
 }
