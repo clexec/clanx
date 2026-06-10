@@ -80,10 +80,7 @@ struct PlayerScreen: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 22)
                 .frame(maxWidth: .infinity)
-                .background {
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
-                }
+                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
                 .padding(.horizontal, 16)
                 .padding(.top, 28)
                 .zIndex(1)
