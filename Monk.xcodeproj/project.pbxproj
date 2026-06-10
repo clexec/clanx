@@ -210,8 +210,8 @@
                         projectDirPath = "";
                         projectRoot = "";
                         packages = (
-                                AA001122334455000000AA04 /* XCLocalSwiftPackageReference "Packages/YMAPI" */,
-                                AA001122334455000000AA05 /* XCLocalSwiftPackageReference "Packages/YouTubeKit" */,
+                                AA001122334455000000AA04 /* XCRemoteSwiftPackageReference "YM-API" */,
+                                AA001122334455000000AA05 /* XCRemoteSwiftPackageReference "YouTubeKit" */,
                         );
                         targets = (
                                 105FC5792E9EAD3100EA8BCF /* Monk */,
@@ -282,26 +282,34 @@
                 };
 /* End PBXTargetDependency section */
 
-/* Begin XCLocalSwiftPackageReference section */
-                AA001122334455000000AA04 /* XCLocalSwiftPackageReference "Packages/YMAPI" */ = {
-                        isa = XCLocalSwiftPackageReference;
-                        relativePath = Packages/YMAPI;
+/* Begin XCRemoteSwiftPackageReference section */
+                AA001122334455000000AA04 /* XCRemoteSwiftPackageReference "YM-API" */ = {
+                        isa = XCRemoteSwiftPackageReference;
+                        repositoryURL = "https://github.com/p0rterB/YM-API";
+                        requirement = {
+                                minimumVersion = 0.7.1;
+                                kind = upToNextMajorVersion;
+                        };
                 };
-                AA001122334455000000AA05 /* XCLocalSwiftPackageReference "Packages/YouTubeKit" */ = {
-                        isa = XCLocalSwiftPackageReference;
-                        relativePath = Packages/YouTubeKit;
+                AA001122334455000000AA05 /* XCRemoteSwiftPackageReference "YouTubeKit" */ = {
+                        isa = XCRemoteSwiftPackageReference;
+                        repositoryURL = "https://github.com/b5i/YouTubeKit";
+                        requirement = {
+                                minimumVersion = 2.7.0;
+                                kind = upToNextMajorVersion;
+                        };
                 };
-/* End XCLocalSwiftPackageReference section */
+/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
                 AA001122334455000000AA02 /* YMAPI */ = {
                         isa = XCSwiftPackageProductDependency;
-                        package = AA001122334455000000AA04 /* XCLocalSwiftPackageReference "Packages/YMAPI" */;
+                        package = AA001122334455000000AA04 /* XCRemoteSwiftPackageReference "YM-API" */;
                         productName = YMAPI;
                 };
                 AA001122334455000000AA03 /* YouTubeKit */ = {
                         isa = XCSwiftPackageProductDependency;
-                        package = AA001122334455000000AA05 /* XCLocalSwiftPackageReference "Packages/YouTubeKit" */;
+                        package = AA001122334455000000AA05 /* XCRemoteSwiftPackageReference "YouTubeKit" */;
                         productName = YouTubeKit;
                 };
 /* End XCSwiftPackageProductDependency section */
