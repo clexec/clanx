@@ -5,8 +5,8 @@ final class PlaybackStreamProvider {
     private let resolvers: [StreamResolving]
     private var cache: [Int: URL] = [:]
 
-    init(resolvers: [StreamResolving] = PlaybackStreamProvider.makeResolvers()) {
-        self.resolvers = resolvers
+    init(resolvers: [StreamResolving]? = nil) {
+        self.resolvers = resolvers ?? PlaybackStreamProvider.makeResolvers()
     }
 
     func streamURL(for track: Track) async -> URL? {
