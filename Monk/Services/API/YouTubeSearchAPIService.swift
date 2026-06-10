@@ -18,7 +18,7 @@ struct YouTubeSearchAPIService: MusicAPIServiceProtocol {
 
             let artist = video.channel?.name ?? "YouTube"
             let id = video.videoId.hashValue & 0x7FFFFFFF
-            let artwork = video.thumbnails.max { ($0.size?.height ?? 0) < ($1.size?.height ?? 0) }?.url
+            let artwork = video.thumbnails.max { ($0.height ?? 0) < ($1.height ?? 0) }?.url
                        ?? video.thumbnails.first?.url
             let duration = (video.timeLengthSeconds ?? 210) * 1000
 
