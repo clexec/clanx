@@ -8,39 +8,25 @@ final class AudioPlayerService: ObservableObject {
     @Published private(set) var currentTime: Double = 0
     @Published private(set) var duration: Double = 30
     @Published var volume: Float = 0.8 {
-        didSet { playerNode?.volume = volume }
+        didSet { player?.volume = volume }
     }
 
-    // AVAudioEngine for EQ support
-    private let engine = AVAudioEngine()
-    private let playerNode = AVPlayerNode()
-    private let eq: AVAudioUnitEQ
-
-    // Legacy AVPlayer for stream URLs (YouTube / JioSaavn full tracks)
-    private var legacyPlayer: AVPlayer?
-    private var usingEngine = false
-
+    private var player: AVPlayer?
     private var timeObserver: Any?
     private var statusObserver: NSKeyValueObservation?
     private var endObserver: NSObjectProtocol?
     private let streamProvider = PlaybackStreamProvider()
     private var loadTask: Task<Void, Never>?
+    private var eqTap: EQAudioTap?
+    private var eqCancellable: AnyCancellable?
     var onTrackEnd: (() -> Void)?
 
     init() {
-        eq = EqualizerService.shared.eq
-        setupEngine()
-    }
-
-    // MARK: - Engine setup
-
-    private func setupEngine() {
-        engine.attach(playerNode)
-        engine.attach(eq)
-        let format = engine.mainMixerNode.outputFormat(forBus: 0)
-        engine.connect(playerNode, to: eq, format: format)
-        engine.connect(eq, to: engine.mainMixerNode, format: format)
-        try? engine.start()
+        eqCancellable = EqualizerService.shared.$gains
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] gains in
+                self?.eqTap?.update(gains: gains)
+            }
     }
 
     // MARK: - Play
@@ -51,7 +37,7 @@ final class AudioPlayerService: ObservableObject {
         duration = Double(max(track.durationMillis, 30_000)) / 1000
 
         if let previewURL = track.previewURL {
-            startLegacy(url: previewURL)
+            startPlayback(url: previewURL)
             duration = 30
         } else {
             state = .loading
@@ -61,47 +47,46 @@ final class AudioPlayerService: ObservableObject {
             guard let self, !Task.isCancelled else { return }
             if let url = await self.streamProvider.streamURL(for: track),
                url != track.previewURL, !Task.isCancelled {
-                self.startLegacy(url: url)
+                self.startPlayback(url: url)
                 self.duration = Double(max(track.durationMillis, 30_000)) / 1000
             }
         }
     }
 
-    private func startLegacy(url: URL) {
+    private func startPlayback(url: URL) {
         stopAll()
-        usingEngine = false
         let item = AVPlayerItem(url: url)
-        legacyPlayer = AVPlayer(playerItem: item)
-        legacyPlayer?.volume = volume
-        addLegacyObservers(item: item)
-        legacyPlayer?.play()
+        // Attach EQ tap
+        let tap = EQAudioTap()
+        tap.isEnabled = EqualizerService.shared.isEnabled
+        tap.update(gains: EqualizerService.shared.gains)
+        tap.attach(to: item)
+        eqTap = tap
+        player = AVPlayer(playerItem: item)
+        player?.volume = volume
+        addObservers(item: item)
+        player?.play()
         state = .playing
     }
 
     // MARK: - Controls
 
     func toggle() {
-        if state == .playing {
-            legacyPlayer?.pause()
-            state = .paused
-        } else {
-            legacyPlayer?.play()
-            state = .playing
-        }
+        if state == .playing { player?.pause(); state = .paused }
+        else { player?.play(); state = .playing }
     }
 
     func seek(to value: Double) {
         let clamped = max(0, min(value, duration))
-        legacyPlayer?.seek(to: CMTime(seconds: clamped, preferredTimescale: 600))
+        player?.seek(to: CMTime(seconds: clamped, preferredTimescale: 600))
         currentTime = clamped
     }
 
     // MARK: - Observers
 
-    private func addLegacyObservers(item: AVPlayerItem) {
-        timeObserver = legacyPlayer?.addPeriodicTimeObserver(
-            forInterval: CMTime(seconds: 0.1, preferredTimescale: 600),
-            queue: .main
+    private func addObservers(item: AVPlayerItem) {
+        timeObserver = player?.addPeriodicTimeObserver(
+            forInterval: CMTime(seconds: 0.1, preferredTimescale: 600), queue: .main
         ) { [weak self] time in
             Task { @MainActor in
                 let s = time.seconds
@@ -114,10 +99,8 @@ final class AudioPlayerService: ObservableObject {
                 if d.isFinite && d > 0 { self?.duration = d }
             }
         }
-        // Auto-advance to next track
         endObserver = NotificationCenter.default.addObserver(
-            forName: .AVPlayerItemDidPlayToEndTime,
-            object: item, queue: .main
+            forName: .AVPlayerItemDidPlayToEndTime, object: item, queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
                 self?.state = .idle
@@ -127,13 +110,11 @@ final class AudioPlayerService: ObservableObject {
     }
 
     private func stopAll() {
-        if let obs = timeObserver, let p = legacyPlayer { p.removeTimeObserver(obs) }
+        if let obs = timeObserver, let p = player { p.removeTimeObserver(obs) }
         if let obs = endObserver { NotificationCenter.default.removeObserver(obs) }
-        timeObserver = nil
-        statusObserver = nil
-        endObserver = nil
-        legacyPlayer?.pause()
-        legacyPlayer = nil
+        timeObserver = nil; statusObserver = nil; endObserver = nil
+        player?.pause(); player = nil
+        eqTap = nil
         currentTime = 0
     }
 }

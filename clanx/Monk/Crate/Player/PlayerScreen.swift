@@ -111,20 +111,17 @@ struct PlayerScreen: View {
     }
 
     private var progressBlock: some View {
+        let duration = max(player.audio.duration, 1)
         let progress = Binding(
             get: { player.audio.currentTime },
             set: { player.audio.seek(to: $0) }
         )
-        let duration = max(player.audio.duration, 1)
-        return VStack(spacing: 6) {
-            // Native Slider with glass track — liquid glass container from parent
-            Slider(value: progress, in: 0...duration)
-                .tint(.white)
-                .padding(.horizontal, 4)
+        return VStack(spacing: 8) {
+            SliderTrack(value: progress, total: duration, height: 4, knob: 18)
             HStack {
-                Text(TimeFormatHelper.format(milliseconds: Int(progress.wrappedValue * 1000)))
+                Text(TimeFormatHelper.format(milliseconds: Int(player.audio.currentTime * 1000)))
                 Spacer()
-                Text("-" + TimeFormatHelper.format(milliseconds: Int(max(0, duration - progress.wrappedValue) * 1000)))
+                Text("-" + TimeFormatHelper.format(milliseconds: Int(max(0, duration - player.audio.currentTime) * 1000)))
             }
             .font(.caption2).foregroundStyle(CrateColor.secondaryText)
         }
@@ -136,12 +133,10 @@ struct PlayerScreen: View {
             set: { player.audio.volume = Float($0) }
         )
         return HStack(spacing: 10) {
-            Image(systemName: "speaker.fill").font(.caption)
-            Slider(value: volume, in: 0...1)
-                .tint(.white)
-            Image(systemName: "speaker.wave.3.fill").font(.caption)
+            Image(systemName: "speaker.fill").font(.caption).foregroundStyle(CrateColor.secondaryText)
+            SliderTrack(value: volume, total: 1, height: 3, knob: 16)
+            Image(systemName: "speaker.wave.3.fill").font(.caption).foregroundStyle(CrateColor.secondaryText)
         }
-        .foregroundStyle(CrateColor.secondaryText)
     }
 
     private var emptyState: some View {

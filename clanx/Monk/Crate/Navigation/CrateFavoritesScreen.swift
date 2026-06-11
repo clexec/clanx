@@ -15,113 +15,155 @@ struct CrateFavoritesScreen: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            VStack(spacing: 0) {
-                // Header
-                Text("Избранное")
-                    .font(.custom("DelaGothicOne-Regular", size: 26))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.top, 16).padding(.bottom, 14)
+            CrateColor.background.ignoresSafeArea()
 
-                // Tab chips
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(FavTab.allCases, id: \.rawValue) { t in
-                            Button {
-                                withAnimation(.spring(response: 0.26)) { tab = t }
-                            } label: {
-                                Text(t.rawValue)
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundStyle(tab == t ? .black : .white)
-                                    .padding(.horizontal, 16).padding(.vertical, 9)
-                                    .background(tab == t ? Color.white : Color.clear, in: Capsule())
-                                    .crateGlass(Capsule())
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                }
-                .padding(.bottom, 10)
-
-                Divider().background(Color.white.opacity(0.07))
-
-                // Content
-                ScrollView(showsIndicators: false) {
-                    Group {
-                        switch tab {
-                        case .liked:     likedContent
-                        case .playlists: playlistsContent
-                        case .artists:   artistsContent
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 160)
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    spotifyHeader
+                    chipRow
+                    Divider().background(Color.white.opacity(0.07))
+                    tabContent
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 160)
                 }
             }
-            .background(CrateColor.background)
 
-            // Sticky bottom buttons
             stickyActions
         }
         .sheet(isPresented: $showCreate) { CreatePlaylistSheet().environmentObject(library) }
         .sheet(isPresented: $showImport)  { ImportMusicSheet() }
     }
 
-    // MARK: - Liked
+    // MARK: - Spotify-style header with cover mosaic
+
+    private var spotifyHeader: some View {
+        ZStack(alignment: .bottom) {
+            // Mosaic background
+            mosaicBackground
+                .frame(height: 220)
+                .clipped()
+                .overlay(
+                    LinearGradient(
+                        colors: [Color.black.opacity(0), Color.black.opacity(0.9)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Избранное")
+                    .font(.custom("DelaGothicOne-Regular", size: 30))
+                    .foregroundStyle(.white)
+                Text("\(library.likedTracks.count) треков · \(library.playlists.count) плейлистов")
+                    .font(.subheadline)
+                    .foregroundStyle(CrateColor.secondaryText)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20).padding(.bottom, 18)
+        }
+    }
+
+    @ViewBuilder
+    private var mosaicBackground: some View {
+        let covers = library.likedTracks.prefix(4).compactMap { $0.artworkURL }
+        if covers.isEmpty {
+            LinearGradient(
+                colors: [Color(red:0.18,green:0.08,blue:0.38), Color(red:0.05,green:0.05,blue:0.18)],
+                startPoint: .topLeading, endPoint: .bottomTrailing
+            )
+        } else {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 2), GridItem(.flexible(), spacing: 2)], spacing: 2) {
+                ForEach(0..<4, id: \.self) { i in
+                    let url = i < covers.count ? covers[i] : covers[i % covers.count]
+                    CoverArtView(url: url, corner: 0)
+                        .aspectRatio(1, contentMode: .fill)
+                        .clipped()
+                }
+            }
+        }
+    }
+
+    // MARK: - Tab chips
+
+    private var chipRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(FavTab.allCases, id: \.rawValue) { t in
+                    Button {
+                        withAnimation(.spring(response: 0.26)) { tab = t }
+                    } label: {
+                        Text(t.rawValue)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(tab == t ? .black : .white)
+                            .padding(.horizontal, 16).padding(.vertical, 9)
+                            .background(tab == t ? Color.white : Color.clear, in: Capsule())
+                            .glassEffect(.regular, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .animation(.spring(response: 0.25, dampingFraction: 0.7), value: tab == t)
+                }
+            }
+            .padding(.horizontal, 16)
+        }
+        .padding(.vertical, 12)
+    }
+
+    // MARK: - Tab content
+
+    @ViewBuilder
+    private var tabContent: some View {
+        switch tab {
+        case .liked:     likedContent
+        case .playlists: playlistsContent
+        case .artists:   artistsContent
+        }
+    }
+
+    // MARK: - Liked (Spotify list)
 
     private var likedContent: some View {
         VStack(spacing: 0) {
             if library.likedTracks.isEmpty {
-                emptyState(icon: "heart.fill",
-                           color: .pink,
-                           title: "Пока нет треков",
+                emptyState(icon: "heart.fill", color: .pink,
+                           title: "Нет любимых треков",
                            subtitle: "Лайкайте треки в плеере")
             } else {
-                // Play-all row
-                HStack {
-                    Text("\(library.likedTracks.count) треков")
-                        .font(.system(size: 13))
-                        .foregroundStyle(CrateColor.secondaryText)
-                    Spacer()
+                // Play-all + shuffle row
+                HStack(spacing: 12) {
                     Button {
                         player.play(library.likedTracks[0], queue: library.likedTracks)
                     } label: {
-                        Label("Слушать всё", systemImage: "play.fill")
-                            .font(.system(size: 12, weight: .semibold))
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 20, weight: .bold))
                             .foregroundStyle(.black)
-                            .padding(.horizontal, 16).padding(.vertical, 8)
-                            .background(Color.white, in: Capsule())
+                            .frame(width: 54, height: 54)
+                            .background(Color.white, in: Circle())
                     }
                     .buttonStyle(.plain)
+
+                    Button {
+                        let shuffled = library.likedTracks.shuffled()
+                        if let first = shuffled.first { player.play(first, queue: Array(shuffled.dropFirst())) }
+                    } label: {
+                        Image(systemName: "shuffle")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 54, height: 54)
+                            .glassEffect(.regular.interactive(), in: Circle())
+                    }
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    Text("\(library.likedTracks.count) треков")
+                        .font(.caption).foregroundStyle(CrateColor.secondaryText)
                 }
-                .padding(.vertical, 14)
+                .padding(.vertical, 16)
 
-                VStack(spacing: 1) {
+                VStack(spacing: 0) {
                     ForEach(Array(library.likedTracks.enumerated()), id: \.element.id) { idx, track in
-                        HStack(spacing: 12) {
-                            Text("\(idx + 1)")
-                                .font(.caption2).foregroundStyle(CrateColor.secondaryText)
-                                .frame(width: 18, alignment: .trailing)
-                            CoverArtView(url: track.artworkURL, corner: 8)
-                                .frame(width: 46, height: 46)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(track.title)
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(.white).lineLimit(1)
-                                Text(track.artistName)
-                                    .font(.caption).foregroundStyle(CrateColor.secondaryText).lineLimit(1)
-                            }
-                            Spacer()
-                            Text(track.durationText)
-                                .font(.caption2).foregroundStyle(CrateColor.secondaryText)
-                        }
-                        .padding(.horizontal, 14).padding(.vertical, 10)
-                        .contentShape(Rectangle())
-                        .onTapGesture { player.play(track, queue: library.likedTracks) }
-
+                        likedRow(track: track, index: idx)
                         if idx < library.likedTracks.count - 1 {
-                            Divider().background(Color.white.opacity(0.06)).padding(.leading, 76)
+                            Divider().background(Color.white.opacity(0.06)).padding(.leading, 70)
                         }
                     }
                 }
@@ -131,51 +173,78 @@ struct CrateFavoritesScreen: View {
         .padding(.top, 4)
     }
 
-    // MARK: - Playlists
+    private func likedRow(track: Track, index: Int) -> some View {
+        HStack(spacing: 12) {
+            CoverArtView(url: track.artworkURL, corner: 8)
+                .frame(width: 48, height: 48)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(track.title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white).lineLimit(1)
+                Text(track.artistName)
+                    .font(.caption).foregroundStyle(CrateColor.secondaryText).lineLimit(1)
+            }
+            Spacer()
+            Text(track.durationText)
+                .font(.caption2).foregroundStyle(CrateColor.secondaryText)
+        }
+        .padding(.horizontal, 14).padding(.vertical, 11)
+        .contentShape(Rectangle())
+        .onTapGesture { player.play(track, queue: library.likedTracks) }
+    }
+
+    // MARK: - Playlists (2-column grid)
 
     private var playlistsContent: some View {
         VStack(spacing: 12) {
             if library.playlists.isEmpty {
-                emptyState(icon: "music.note.list",
-                           color: .purple,
+                emptyState(icon: "music.note.list", color: .purple,
                            title: "Нет плейлистов",
                            subtitle: "Нажмите «Создать плейлист»")
             } else {
-                VStack(spacing: 1) {
+                LazyVGrid(
+                    columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)],
+                    spacing: 12
+                ) {
                     ForEach(library.playlists) { pl in
-                        HStack(spacing: 14) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(LinearGradient(
-                                        colors: [CrateColor.glassBackground.stops.first?.color ?? .gray,
-                                                 Color(red:0.15,green:0.12,blue:0.22)],
-                                        startPoint: .topLeading, endPoint: .bottomTrailing))
-                                    .frame(width: 52, height: 52)
-                                if let url = pl.artworkURL {
-                                    CoverArtView(url: url, corner: 10).frame(width: 52, height: 52)
-                                } else {
-                                    Image(systemName: "music.note.list")
-                                        .foregroundStyle(.white.opacity(0.8))
-                                }
-                            }
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(pl.title)
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(.white).lineLimit(1)
-                                Text("\(pl.tracks.count) треков")
-                                    .font(.caption).foregroundStyle(CrateColor.secondaryText)
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 12)).foregroundStyle(CrateColor.secondaryText)
-                        }
-                        .padding(.horizontal, 14).padding(.vertical, 10)
+                        playlistCard(pl)
                     }
                 }
-                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .padding(.top, 8)
             }
         }
         .padding(.top, 4)
+    }
+
+    private func playlistCard(_ pl: Playlist) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(LinearGradient(
+                        colors: [Color(red:0.10,green:0.08,blue:0.22),
+                                 Color(red:0.05,green:0.04,blue:0.12)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing))
+                if let url = pl.artworkURL {
+                    CoverArtView(url: url, corner: 12)
+                } else {
+                    Image(systemName: "music.note.list")
+                        .font(.system(size: 30)).foregroundStyle(.white.opacity(0.7))
+                }
+            }
+            .aspectRatio(1, contentMode: .fit)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(pl.title).font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white).lineLimit(1)
+                Text("\(pl.tracks.count) треков").font(.caption2)
+                    .foregroundStyle(CrateColor.secondaryText)
+            }
+        }
+        .padding(10)
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .onTapGesture {
+            if let f = pl.tracks.first { player.play(f, queue: pl.tracks) }
+        }
     }
 
     // MARK: - Artists
@@ -188,8 +257,7 @@ struct CrateFavoritesScreen: View {
              .sorted { $0.count > $1.count }
 
             if artists.isEmpty {
-                emptyState(icon: "person.2.fill",
-                           color: .orange,
+                emptyState(icon: "person.2.fill", color: .orange,
                            title: "Нет исполнителей",
                            subtitle: "Появятся после лайков")
             } else {
@@ -205,20 +273,19 @@ struct CrateFavoritesScreen: View {
                                         .fill(LinearGradient(
                                             colors: [.orange.opacity(0.5), .pink.opacity(0.4)],
                                             startPoint: .topLeading, endPoint: .bottomTrailing))
-                                        .frame(width: 50, height: 50)
+                                        .frame(width: 52, height: 52)
                                     if let url = a.url {
-                                        CoverArtView(url: url, corner: 25)
-                                            .frame(width: 50, height: 50)
+                                        CoverArtView(url: url, corner: 26)
+                                            .frame(width: 52, height: 52)
                                             .clipShape(Circle())
                                     } else {
                                         Text(String(a.name.prefix(1)).uppercased())
-                                            .font(.system(size: 18, weight: .bold))
+                                            .font(.system(size: 20, weight: .bold))
                                             .foregroundStyle(.white)
                                     }
                                 }
                                 VStack(alignment: .leading, spacing: 3) {
-                                    Text(a.name)
-                                        .font(.system(size: 14, weight: .semibold))
+                                    Text(a.name).font(.system(size: 14, weight: .semibold))
                                         .foregroundStyle(.white).lineLimit(1)
                                     Text("\(a.count) треков")
                                         .font(.caption).foregroundStyle(CrateColor.secondaryText)
@@ -227,7 +294,7 @@ struct CrateFavoritesScreen: View {
                                 Image(systemName: "play.fill")
                                     .font(.system(size: 12)).foregroundStyle(CrateColor.secondaryText)
                             }
-                            .padding(.horizontal, 14).padding(.vertical, 10)
+                            .padding(.horizontal, 14).padding(.vertical, 11)
                         }
                         .buttonStyle(.plain)
                     }
@@ -244,17 +311,12 @@ struct CrateFavoritesScreen: View {
         VStack(spacing: 14) {
             Spacer().frame(height: 50)
             ZStack {
-                Circle()
-                    .fill(color.opacity(0.15))
-                    .frame(width: 88, height: 88)
-                Image(systemName: icon)
-                    .font(.system(size: 34))
-                    .foregroundStyle(color.opacity(0.8))
+                Circle().fill(color.opacity(0.15)).frame(width: 88, height: 88)
+                Image(systemName: icon).font(.system(size: 34)).foregroundStyle(color.opacity(0.8))
             }
-            .crateGlass(Circle())
+            .glassEffect(.regular, in: Circle())
             Text(title)
-                .font(.custom("DelaGothicOne-Regular", size: 18))
-                .foregroundStyle(.white)
+                .font(.custom("DelaGothicOne-Regular", size: 18)).foregroundStyle(.white)
             Text(subtitle)
                 .font(.subheadline).foregroundStyle(CrateColor.secondaryText)
                 .multilineTextAlignment(.center)
@@ -276,9 +338,9 @@ struct CrateFavoritesScreen: View {
                         Image(systemName: "plus").font(.system(size: 13, weight: .bold))
                         Text("Создать плейлист").font(.system(size: 13, weight: .semibold))
                     }
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity).padding(.vertical, 14)
-                    .background(Color.white, in: Capsule())
+                    .glassEffect(.regular.interactive(), in: Capsule())
                 }
                 .buttonStyle(.plain)
 
@@ -289,7 +351,7 @@ struct CrateFavoritesScreen: View {
                     }
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity).padding(.vertical, 14)
-                    .crateGlass(Capsule())
+                    .glassEffect(.regular.interactive(), in: Capsule())
                 }
                 .buttonStyle(.plain)
             }
@@ -314,7 +376,7 @@ struct CreatePlaylistSheet: View {
                         .fill(LinearGradient(colors: [.purple.opacity(0.5), .blue.opacity(0.35)],
                                              startPoint: .topLeading, endPoint: .bottomTrailing))
                         .frame(width: 110, height: 110)
-                        .crateGlass(RoundedRectangle(cornerRadius: 22))
+                        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 22))
                     Image(systemName: "music.note.list")
                         .font(.system(size: 44)).foregroundStyle(.white)
                 }
@@ -330,7 +392,7 @@ struct CreatePlaylistSheet: View {
                     let t = name.trimmingCharacters(in: .whitespaces)
                     guard !t.isEmpty else { return }
                     library.playlists.append(
-                        Playlist(id: UUID().uuidString, title: t, subtitle: "Mono",
+                        Playlist(id: UUID().uuidString, title: t, subtitle: "Crate",
                                  artworkURL: nil, tracks: [], createdAt: Date()))
                     dismiss()
                 } label: {
@@ -372,7 +434,7 @@ struct ImportMusicSheet: View {
                         .fill(LinearGradient(colors: [.blue.opacity(0.4), .cyan.opacity(0.25)],
                                              startPoint: .topLeading, endPoint: .bottomTrailing))
                         .frame(width: 110, height: 110)
-                        .crateGlass(Circle())
+                        .glassEffect(.regular, in: Circle())
                     Image(systemName: "music.note.house.fill")
                         .font(.system(size: 44)).foregroundStyle(.white)
                 }
@@ -399,7 +461,8 @@ struct ImportMusicSheet: View {
             .background(CrateColor.background.ignoresSafeArea())
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Готово") { dismiss() }.font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
+                    Button("Готово") { dismiss() }
+                        .font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
                 }
             }
         }
@@ -418,6 +481,6 @@ struct ImportMusicSheet: View {
             Image(systemName: "chevron.right").font(.system(size: 12)).foregroundStyle(CrateColor.secondaryText)
         }
         .padding(14)
-        .crateGlass(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }

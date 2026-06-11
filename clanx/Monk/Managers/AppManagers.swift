@@ -29,6 +29,15 @@ final class AuthenticationManager: ObservableObject {
     func signInWithGoogle() async { do { setUser(try await googleService.signIn()) } catch { errorMessage = error.localizedDescription } }
     func signOut() { currentUser = nil; UserDefaults.standard.removeObject(forKey: "currentUser") }
 
+    func updateProfile(displayName: String, username: String, bio: String, avatarData: Data?) {
+        guard var user = currentUser else { return }
+        user.displayName = displayName
+        user.username = username
+        user.bio = bio
+        if let data = avatarData { user.avatarData = data }
+        setUser(user)
+    }
+
     private func setUser(_ user: User) {
         currentUser = user
         UserDefaults.standard.set(try? JSONEncoder().encode(user), forKey: "currentUser")

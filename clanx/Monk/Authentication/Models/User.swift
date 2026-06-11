@@ -10,6 +10,8 @@ struct User: Identifiable, Codable, Hashable {
     let id: String
     var email: String
     var displayName: String
+    var username: String
+    var bio: String
     var avatarData: Data?
     let creationDate: Date
     let provider: AuthProvider

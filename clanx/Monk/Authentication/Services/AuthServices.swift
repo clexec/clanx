@@ -53,7 +53,7 @@ final class EmailAuthService: AuthenticationServiceProtocol {
         guard ValidationHelper.isValidEmail(email) else { throw AuthError.invalidEmail }
         guard PasswordValidationHelper.isValid(password) else { throw AuthError.weakPassword }
         if await persistence.user(email: email) != nil { throw AuthError.accountExists }
-        let user = User(id: UUID().uuidString, email: email, displayName: displayName.isEmpty ? email.components(separatedBy: "@").first ?? "Listener" : displayName, avatarData: nil, creationDate: Date(), provider: .email)
+        let user = User(id: UUID().uuidString, email: email, displayName: displayName.isEmpty ? email.components(separatedBy: "@").first ?? "Listener" : displayName, username: email.components(separatedBy: "@").first ?? "user", bio: "", avatarData: nil, creationDate: Date(), provider: .email)
         keychain.save(hashing.hash(password, salt: email.lowercased()), for: "password.\(email.lowercased())")
         await persistence.saveUser(user)
         UserDefaults.standard.set(email, forKey: "lastEmail")
@@ -69,14 +69,14 @@ final class EmailAuthService: AuthenticationServiceProtocol {
 
 final class AppleSignInService {
     func makeUser(email: String?) -> User {
-        User(id: UUID().uuidString, email: email ?? "apple-user@privaterelay.appleid.com", displayName: "Apple Listener", avatarData: nil, creationDate: Date(), provider: .apple)
+        User(id: UUID().uuidString, email: email ?? "apple-user@privaterelay.appleid.com", displayName: "Apple Listener", username: "apple_user", bio: "", avatarData: nil, creationDate: Date(), provider: .apple)
     }
 }
 
 final class GoogleSignInService {
     func signIn() async throws -> User {
         guard !AppConstants.googleClientID.isEmpty else { throw AuthError.googleClientIDMissing }
-        return User(id: UUID().uuidString, email: "google@there.music", displayName: "Google Listener", avatarData: nil, creationDate: Date(), provider: .google)
+        return User(id: UUID().uuidString, email: "google@there.music", displayName: "Google Listener", username: "google_user", bio: "", avatarData: nil, creationDate: Date(), provider: .google)
     }
 }
 
