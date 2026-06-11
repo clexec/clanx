@@ -93,12 +93,11 @@ final class EQAudioTap {
                 tapStorage.pointee = clientInfo
             },
             finalize: { tap in
-                if let s = MTAudioProcessingTapGetStorage(tap) {
-                    Unmanaged<EQAudioTap>.fromOpaque(s).release()
-                }
+                let s = MTAudioProcessingTapGetStorage(tap)
+                Unmanaged<EQAudioTap>.fromOpaque(s).release()
             },
             prepare: { tap, _, fmt in
-                guard let s = MTAudioProcessingTapGetStorage(tap) else { return }
+                let s = MTAudioProcessingTapGetStorage(tap)
                 let p = Unmanaged<EQAudioTap>.fromOpaque(s).takeUnretainedValue()
                 p.sampleRate = Float(fmt.pointee.mSampleRate)
                 p.update(gains: Array(repeating: 0, count: p.bandFreqs.count))
@@ -106,7 +105,7 @@ final class EQAudioTap {
             unprepare: { _ in },
             process: { tap, nFrames, _, blInOut, nOut, flagsOut in
                 MTAudioProcessingTapGetSourceAudio(tap, nFrames, blInOut, flagsOut, nil, nOut)
-                guard let s = MTAudioProcessingTapGetStorage(tap) else { return }
+                let s = MTAudioProcessingTapGetStorage(tap)
                 Unmanaged<EQAudioTap>.fromOpaque(s).takeUnretainedValue()
                     .applyEQ(blInOut, frameCount: Int(nOut.pointee))
             }
