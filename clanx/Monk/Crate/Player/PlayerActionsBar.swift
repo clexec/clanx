@@ -8,6 +8,7 @@ struct PlayerActionsBar: View {
 
     @EnvironmentObject private var player: PlayerManager
     @State private var showShare = false
+    @State private var showEqualizer = false
     @State private var likeBounce = false
 
     var body: some View {
@@ -16,11 +17,9 @@ struct PlayerActionsBar: View {
             Spacer()
             glassIcon("bubble.left", action: onComments)
             Spacer()
-            airPlayButton
+            glassIcon("slider.vertical.3") { showEqualizer = true }
             Spacer()
-            glassIcon("forward.end.fill") {
-                player.audio.seek(to: max(0, player.audio.duration - 0.5))
-            }
+            airPlayButton
             Spacer()
             glassIcon("square.and.arrow.up") { showShare = true }
         }
@@ -30,6 +29,7 @@ struct PlayerActionsBar: View {
                     .presentationDetents([.medium])
             }
         }
+        .sheet(isPresented: $showEqualizer) { EqualizerView() }
     }
 
     // Like button — bounce animation + red tint when liked

@@ -12,7 +12,8 @@ struct HomeScreen: View {
 
                 // Title
                 Text(bi("Главная", "Home"))
-                    .font(.title.bold()).foregroundStyle(.white)
+                    .font(.custom("DelaGothicOne-Regular", size: 28))
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.top, 8)
 
@@ -81,7 +82,7 @@ struct HomeScreen: View {
         if !model.recommended.isEmpty {
             VStack(alignment: .leading, spacing: 12) {
                 Text(bi("Рекомендованные треки", "Recommended Tracks"))
-                    .font(.title3.bold()).foregroundStyle(.white)
+                    .font(.custom("DelaGothicOne-Regular", size: 20)).foregroundStyle(.white)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {

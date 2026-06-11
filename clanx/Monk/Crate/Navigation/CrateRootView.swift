@@ -1,124 +1,88 @@
 import SwiftUI
 
-private enum RootTab: Int, CaseIterable {
-    case home, favorites, profile
-
-    var title: String {
-        switch self {
-        case .home:      return "Главная"
-        case .favorites: return "Избранное"
-        case .profile:   return "Профиль"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .home:      return "house.fill"
-        case .favorites: return "heart.fill"
-        case .profile:   return "person.fill"
-        }
-    }
-}
-
 struct CrateRootView: View {
     @EnvironmentObject private var player: PlayerManager
-    @State private var selectedTab: RootTab = .home
     @State private var showSearch = false
     @State private var showPlayer = false
 
     var body: some View {
-        ZStack {
-            // Screen content — all screens kept alive via opacity
-            HomeScreen()
-                .opacity(selectedTab == .home ? 1 : 0)
-                .allowsHitTesting(selectedTab == .home)
-
-            CrateFavoritesScreen()
-                .opacity(selectedTab == .favorites ? 1 : 0)
-                .allowsHitTesting(selectedTab == .favorites)
-
-            CrateProfileScreen()
-                .opacity(selectedTab == .profile ? 1 : 0)
-                .allowsHitTesting(selectedTab == .profile)
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            bottomBar
-        }
-        .sheet(isPresented: $showPlayer) { PlayerScreen() }
-        .sheet(isPresented: $showSearch) { SearchSheetView() }
+        tabContent
+            .sheet(isPresented: $showPlayer) { PlayerScreen() }
+            .sheet(isPresented: $showSearch) { SearchSheetView() }
     }
 
-    // MARK: - Bottom bar
+    // MARK: - Tab content
 
-    private var bottomBar: some View {
-        VStack(spacing: 0) {
-            // Mini player above the bar (tap to open full player)
-            if player.currentTrack != nil {
-                MiniPlayerBar()
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)
-                    .onTapGesture { showPlayer = true }
-            }
+    @ViewBuilder
+    private var tabContent: some View {
+        #if compiler(>=6.2)
+        nativeTabView
+        #else
+        fallbackTabView
+        #endif
+    }
 
-            // Tab row: [capsule with 3 tabs] [search circle]
-            HStack(spacing: 12) {
-                // Left capsule — 3 tabs joined
-                HStack(spacing: 0) {
-                    ForEach(RootTab.allCases, id: \.rawValue) { tab in
-                        tabButton(tab)
-                    }
+    // MARK: - iOS 26 native TabView (glass bar) + search in same accessory row
+
+    #if compiler(>=6.2)
+    @ViewBuilder
+    private var nativeTabView: some View {
+        TabView {
+            Tab("Главная",   systemImage: "house.fill")   { HomeScreen() }
+            Tab("Избранное", systemImage: "heart.fill")   { CrateFavoritesScreen() }
+            Tab("Профиль",   systemImage: "person.fill")  { CrateProfileScreen() }
+        }
+        // tabViewBottomAccessory sits in the same visual strip as the tab bar
+        .tabViewBottomAccessory {
+            HStack(spacing: 0) {
+                // Mini player (only when track is active) — takes all available space
+                if player.currentTrack != nil {
+                    MiniPlayerBar()
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .onTapGesture { showPlayer = true }
+                        .layoutPriority(1)
                 }
-                .padding(.horizontal, 6)
-                .padding(.vertical, 6)
-                .background(.ultraThinMaterial, in: Capsule())
-                .overlay(Capsule().stroke(Color.white.opacity(0.12), lineWidth: 0.5))
 
-                // Right circle — search, same row, visually separated
+                Spacer(minLength: 0)
+
+                // Search circle — always visible, right side, same row as mini player
                 Button { showSearch = true } label: {
                     Image(systemName: "magnifyingglass")
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(.white)
-                        .frame(width: 54, height: 54)
-                        .background(.ultraThinMaterial, in: Circle())
-                        .overlay(Circle().stroke(Color.white.opacity(0.12), lineWidth: 0.5))
+                        .frame(width: 44, height: 44)
+                        .glassEffect(in: .circle)
                 }
                 .buttonStyle(.plain)
+                .padding(.trailing, 12)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 10)
-            .padding(.bottom, 28)
-            .background(
-                LinearGradient(
-                    colors: [.black.opacity(0), .black.opacity(0.92)],
-                    startPoint: .top, endPoint: .bottom
-                )
-                .ignoresSafeArea(edges: .bottom)
-            )
         }
     }
+    #endif
 
-    // MARK: - Single tab button
+    // MARK: - Fallback for Xcode 16
 
-    private func tabButton(_ tab: RootTab) -> some View {
-        let selected = selectedTab == tab
-        return Button {
-            withAnimation(.spring(response: 0.28, dampingFraction: 0.72)) {
-                selectedTab = tab
+    private var fallbackTabView: some View {
+        ZStack(alignment: .bottomTrailing) {
+            TabView {
+                HomeScreen().tabItem           { Label("Главная",   systemImage: "house.fill")  }
+                CrateFavoritesScreen().tabItem { Label("Избранное", systemImage: "heart.fill")  }
+                CrateProfileScreen().tabItem   { Label("Профиль",   systemImage: "person.fill") }
             }
-        } label: {
-            VStack(spacing: 4) {
-                Image(systemName: tab.icon)
-                    .font(.system(size: 17, weight: selected ? .bold : .regular))
-                Text(tab.title)
-                    .font(.system(size: 10, weight: .medium))
+
+            // Fallback: floating search circle above tab bar
+            Button { showSearch = true } label: {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 48, height: 48)
+                    .background(.ultraThinMaterial, in: Circle())
             }
-            .foregroundStyle(selected ? .white : CrateColor.secondaryText)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 9)
-            .background(selected ? Color.white.opacity(0.12) : Color.clear, in: Capsule())
+            .buttonStyle(.plain)
+            .padding(.trailing, 16)
+            .padding(.bottom, player.currentTrack != nil ? 148 : 84)
         }
-        .buttonStyle(.plain)
-        .animation(.spring(response: 0.25), value: selected)
     }
 }
 

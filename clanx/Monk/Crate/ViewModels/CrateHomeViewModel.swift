@@ -18,8 +18,8 @@ final class CrateHomeViewModel: ObservableObject {
         ("Аудиокниги", "Audiobooks", "soundtrack")
     ]
 
-    private let tracks = TrackRepository(api: JamendoAPIService())
-    private let search = SearchRepository(api: JamendoAPIService())
+    private let tracks = TrackRepository(api: ITunesAPIService())
+    private let search = SearchRepository(api: ITunesAPIService())
     private let albumRepo = AlbumRepository()
 
     func loadIfNeeded() async {
