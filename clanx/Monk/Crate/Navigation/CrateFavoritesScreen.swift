@@ -147,7 +147,8 @@ struct CrateFavoritesScreen: View {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 10)
                                     .fill(LinearGradient(
-                                        colors: [.purple.opacity(0.6), .blue.opacity(0.4)],
+                                        colors: [CrateColor.glassBackground.stops.first?.color ?? .gray,
+                                                 Color(red:0.15,green:0.12,blue:0.22)],
                                         startPoint: .topLeading, endPoint: .bottomTrailing))
                                     .frame(width: 52, height: 52)
                                 if let url = pl.artworkURL {

@@ -9,13 +9,15 @@ final class CrateHomeViewModel: ObservableObject {
     @Published var tiles: [Track] = []
     @Published var albums: [Album] = []
     @Published var results: [Track] = []
+    @Published var lilPeep: [Track] = []
+    @Published var morgenshtern: [Track] = []
     @Published var isLoading = false
 
     let filters: [(ru: String, en: String, seed: String)] = [
-        ("Все", "All", "top hits 2026"),
-        ("Музыка", "Music", "pop hits"),
-        ("Подкасты", "Podcasts", "talk"),
-        ("Аудиокниги", "Audiobooks", "soundtrack")
+        ("Все",         "All",        "top hits 2024"),
+        ("Музыка",      "Music",      "pop hits"),
+        ("Подкасты",    "Podcasts",   "talk podcast"),
+        ("Аудиокниги",  "Audiobooks", "audiobook soundtrack")
     ]
 
     private let tracks = TrackRepository(api: ITunesAPIService())
@@ -40,12 +42,18 @@ final class CrateHomeViewModel: ObservableObject {
 
     private func reload(seed: String) async {
         isLoading = true
-        async let tracksTask = tracks.recommendations(seed: seed)
-        async let albumTracksTask = tracks.trending()
-        let (loaded, albumSource) = await (tracksTask, albumTracksTask)
-        recommended = loaded
-        tiles = Array(loaded.prefix(6))
-        albums = albumRepo.albums(from: albumSource).prefix(8).map { $0 }
-        isLoading = false
+        async let mainTask     = tracks.recommendations(seed: seed)
+        async let albumTask    = tracks.trending()
+        async let peepTask     = tracks.recommendations(seed: "lil peep")
+        async let morganTask   = tracks.recommendations(seed: "morgenshtern")
+
+        let (loaded, albumSource, peep, morgan) = await (mainTask, albumTask, peepTask, morganTask)
+
+        recommended    = loaded
+        tiles          = Array(loaded.prefix(6))
+        albums         = albumRepo.albums(from: albumSource).prefix(8).map { $0 }
+        lilPeep        = peep
+        morgenshtern   = morgan
+        isLoading      = false
     }
 }

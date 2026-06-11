@@ -82,23 +82,27 @@ struct PlayerScreen: View {
                 .padding(.top, 32)
                 .zIndex(10)
 
-                // Bottom glass block — no .background() wrapper, glassEffect directly
-                VStack(spacing: 20) {
-                    progressBlock
-                    volumeBlock
-                    PlayerActionsBar(
-                        isLiked: library.isLiked(track),
-                        onLike: { library.toggleLike(track) },
-                        onComments: { showLyrics = true }
-                    )
-                    .allowsHitTesting(true)
-                }
+                // Progress bar — free-floating, no glass container
+                progressBlock
+                    .padding(.horizontal, 24)
+                    .padding(.top, 28)
+
+                // Volume
+                volumeBlock
+                    .padding(.horizontal, 24)
+
+                // Actions bar in its own glass pill
+                PlayerActionsBar(
+                    isLiked: library.isLiked(track),
+                    onLike: { library.toggleLike(track) },
+                    onComments: { showLyrics = true }
+                )
                 .padding(.horizontal, 20)
-                .padding(.vertical, 22)
+                .padding(.vertical, 16)
                 .frame(maxWidth: .infinity)
-                .crateGlass(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
                 .padding(.horizontal, 16)
-                .padding(.top, 28)
+                .padding(.top, 8)
                 .zIndex(1)
 
                 Spacer(minLength: 24)

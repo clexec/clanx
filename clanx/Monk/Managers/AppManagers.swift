@@ -54,6 +54,18 @@ final class PlayerManager: ObservableObject {
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
             }
+        // Auto-advance: when track ends, play next in queue (or repeat)
+        audio.onTrackEnd = { [weak self] in
+            guard let self else { return }
+            switch self.repeatMode {
+            case .one:
+                if let t = self.currentTrack { self.play(t, queue: self.queue) }
+            case .all where self.queue.isEmpty:
+                break
+            default:
+                if !self.queue.isEmpty { self.next() }
+            }
+        }
     }
 
     func play(_ track: Track, queue: [Track] = []) {

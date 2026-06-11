@@ -8,19 +8,16 @@ struct HomeScreen: View {
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 22) {
 
-                // Title
                 Text(bi("Главная", "Home"))
                     .font(.custom("DelaGothicOne-Regular", size: 28))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.top, 8)
 
-                // Search bar
                 SearchField(text: $model.query) { Task { await model.runSearch() } }
 
-                // Filter chips with glass
                 filterChips
 
                 if model.isLoading {
@@ -38,37 +35,33 @@ struct HomeScreen: View {
         .task { await model.loadIfNeeded() }
     }
 
-    // MARK: Filter chips
+    // MARK: - Filter chips (Liquid Glass)
+
     private var filterChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 ForEach(model.filters.indices, id: \.self) { index in
                     let active = model.filter == index
-                    Text(bi(model.filters[index].ru, model.filters[index].en))
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(active ? .black : .white)
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 9)
-                        .background {
-                            if active {
-                                Capsule().fill(.white)
-                            } else {
-                                Capsule().fill(.clear)
-                            }
-                        }
-                        .crateGlass(Capsule())
-                        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: active)
-                        .onTapGesture { Task { await model.select(index) } }
+                    Button { Task { await model.select(index) } } label: {
+                        Text(bi(model.filters[index].ru, model.filters[index].en))
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(active ? .black : .white)
+                            .padding(.horizontal, 18).padding(.vertical, 9)
+                            .background(active ? Color.white : Color.clear, in: Capsule())
+                            .glassEffect(.regular, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .animation(.spring(response: 0.25, dampingFraction: 0.7), value: active)
                 }
             }
             .padding(.vertical, 2)
         }
     }
 
-    // MARK: Main content
+    // MARK: - Main content
+
     @ViewBuilder
     private var mainContent: some View {
-        // 2-column grid of top tracks (matches screenshot)
         if !model.tiles.isEmpty {
             LazyVGrid(columns: columns, spacing: 10) {
                 ForEach(model.tiles) { track in
@@ -78,29 +71,90 @@ struct HomeScreen: View {
             }
         }
 
-        // Recommended carousel
         if !model.recommended.isEmpty {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(bi("Рекомендованные треки", "Recommended Tracks"))
-                    .font(.custom("DelaGothicOne-Regular", size: 20)).foregroundStyle(.white)
+            artistCarousel(
+                title: bi("Рекомендованные треки", "Recommended Tracks"),
+                tracks: model.recommended
+            )
+        }
 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(model.recommended) { track in
-                            CoverArtView(url: track.artworkURL, corner: 14)
-                                .frame(width: 160, height: 160)
-                                .onTapGesture { player.play(track, queue: model.recommended) }
-                        }
-                    }
-                    .padding(.horizontal, 1)
-                }
-                .padding(.horizontal, -16)
-                .padding(.leading, 16)
-            }
+        if !model.lilPeep.isEmpty {
+            artistCarousel(title: "Lil Peep", tracks: model.lilPeep)
+        }
+
+        if !model.morgenshtern.isEmpty {
+            artistCarousel(title: "Моргенштерн", tracks: model.morgenshtern)
+        }
+
+        if !model.albums.isEmpty {
+            albumCarousel
         }
     }
 
-    // MARK: Search results
+    // MARK: - Artist carousel
+
+    private func artistCarousel(title: String, tracks: [Track]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.custom("DelaGothicOne-Regular", size: 20))
+                .foregroundStyle(.white)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(tracks) { track in
+                        VStack(alignment: .leading, spacing: 8) {
+                            CoverArtView(url: track.artworkURL, corner: 14)
+                                .frame(width: 150, height: 150)
+                            Text(track.title)
+                                .font(.caption.bold()).foregroundStyle(.white)
+                                .lineLimit(1).frame(width: 150)
+                            Text(track.artistName)
+                                .font(.caption2).foregroundStyle(CrateColor.secondaryText)
+                                .lineLimit(1).frame(width: 150)
+                        }
+                        .onTapGesture { player.play(track, queue: tracks) }
+                    }
+                }
+                .padding(.horizontal, 1)
+            }
+            .padding(.horizontal, -16).padding(.leading, 16)
+        }
+    }
+
+    // MARK: - Albums carousel
+
+    private var albumCarousel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(bi("Альбомы", "Albums"))
+                .font(.custom("DelaGothicOne-Regular", size: 20))
+                .foregroundStyle(.white)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 14) {
+                    ForEach(model.albums) { album in
+                        VStack(alignment: .leading, spacing: 8) {
+                            CoverArtView(url: album.artworkURL, corner: 14)
+                                .frame(width: 150, height: 150)
+                            Text(album.title)
+                                .font(.caption.bold()).foregroundStyle(.white)
+                                .lineLimit(1).frame(width: 150)
+                            Text(album.artistName)
+                                .font(.caption2).foregroundStyle(CrateColor.secondaryText)
+                                .lineLimit(1).frame(width: 150)
+                        }
+                        .onTapGesture {
+                            if let f = album.tracks.first { player.play(f, queue: album.tracks) }
+                        }
+                    }
+                }
+                .padding(.horizontal, 1)
+            }
+            .padding(.horizontal, -16).padding(.leading, 16)
+        }
+    }
+
+    // MARK: - Search results
+
     @ViewBuilder
     private var searchResults: some View {
         if model.results.isEmpty {
@@ -119,21 +173,19 @@ struct HomeScreen: View {
         }
     }
 
-    // Home card — artwork left + text right, glass background
+    // MARK: - Home card
+
     private func homeCard(track: Track) -> some View {
         HStack(spacing: 10) {
-            CoverArtView(url: track.artworkURL, corner: 10)
-                .frame(width: 52, height: 52)
+            CoverArtView(url: track.artworkURL, corner: 10).frame(width: 52, height: 52)
             VStack(alignment: .leading, spacing: 3) {
-                Text(track.title)
-                    .font(.caption.bold()).foregroundStyle(.white).lineLimit(2)
-                Text(track.artistName)
-                    .font(.caption2).foregroundStyle(CrateColor.secondaryText).lineLimit(1)
+                Text(track.title).font(.caption.bold()).foregroundStyle(.white).lineLimit(2)
+                Text(track.artistName).font(.caption2).foregroundStyle(CrateColor.secondaryText).lineLimit(1)
             }
             Spacer(minLength: 0)
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .crateGlass(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
