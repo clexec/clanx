@@ -335,7 +335,7 @@ private struct ArtistRow: View {
 
 // MARK: - Create playlist sheet
 
-struct CreatePlaylistSheet: View {
+struct _LegacyCreatePlaylistSheet: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var library: LibraryManager
     @State private var name = ""
@@ -398,7 +398,7 @@ struct CreatePlaylistSheet: View {
 
 // MARK: - Import music sheet
 
-struct ImportMusicSheet: View {
+struct _LegacyImportMusicSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
