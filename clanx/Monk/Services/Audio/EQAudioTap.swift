@@ -11,8 +11,8 @@ struct BiquadCoeffs {
 
     static func peakEQ(freq: Float, gainDB: Float, sampleRate: Float, q: Float = 1.4) -> BiquadCoeffs {
         guard abs(gainDB) > 0.01 else { return .passthrough }
-        let A  = pow(10, gainDB / 40)
-        let w0 = 2 * Float.pi * freq / sampleRate
+        let A     = pow(10, gainDB / 40)
+        let w0    = 2 * Float.pi * freq / sampleRate
         let sinW0 = sin(w0), cosW0 = cos(w0)
         let alpha = sinW0 / (2 * q)
         let a0    = 1 + alpha / A
@@ -39,10 +39,10 @@ final class BiquadFilter {
         let c = coeffs
         var ls1 = s1[channel], ls2 = s2[channel]
         for i in 0..<count {
-            let x = samples[i]
-            let y = c.b0 * x + ls1
-            ls1 = c.b1 * x - c.a1 * y + ls2
-            ls2 = c.b2 * x - c.a2 * y
+            let x  = samples[i]
+            let y  = c.b0 * x + ls1
+            ls1    = c.b1 * x - c.a1 * y + ls2
+            ls2    = c.b2 * x - c.a2 * y
             samples[i] = y
         }
         s1[channel] = ls1; s2[channel] = ls2
@@ -52,6 +52,7 @@ final class BiquadFilter {
 // MARK: - EQ Tap
 
 final class EQAudioTap {
+    // MTAudioProcessingTap is a CF type bridged directly in Swift
     private(set) var tap: MTAudioProcessingTap?
     private let filters: [BiquadFilter]
     var isEnabled: Bool = true
@@ -87,9 +88,14 @@ final class EQAudioTap {
         var cbs = MTAudioProcessingTapCallbacks(
             version: kMTAudioProcessingTapCallbacksVersion_0,
             clientInfo: retained.toOpaque(),
-            init: { _, clientInfo, tapStorage in tapStorage?.pointee = clientInfo },
+            init: { _, clientInfo, tapStorage in
+                // tapStorage is non-optional UnsafeMutablePointer
+                tapStorage.pointee = clientInfo
+            },
             finalize: { tap in
-                if let s = MTAudioProcessingTapGetStorage(tap) { Unmanaged<EQAudioTap>.fromOpaque(s).release() }
+                if let s = MTAudioProcessingTapGetStorage(tap) {
+                    Unmanaged<EQAudioTap>.fromOpaque(s).release()
+                }
             },
             prepare: { tap, _, fmt in
                 guard let s = MTAudioProcessingTapGetStorage(tap) else { return }
@@ -106,10 +112,16 @@ final class EQAudioTap {
             }
         )
 
-        var newTap: Unmanaged<MTAudioProcessingTap>?
-        let status = MTAudioProcessingTapCreate(kCFAllocatorDefault, &cbs, kMTAudioProcessingTapCreationFlag_PostEffects, &newTap)
+        // MTAudioProcessingTapCreate takes UnsafeMutablePointer<MTAudioProcessingTap?> directly
+        var newTap: MTAudioProcessingTap?
+        let status = MTAudioProcessingTapCreate(
+            kCFAllocatorDefault,
+            &cbs,
+            kMTAudioProcessingTapCreationFlag_PostEffects,
+            &newTap
+        )
         if status == noErr {
-            tap = newTap?.takeRetainedValue()
+            tap = newTap
         } else {
             retained.release()
         }
@@ -121,15 +133,18 @@ final class EQAudioTap {
 extension EQAudioTap {
     func attach(to item: AVPlayerItem) {
         guard let processingTap = tap else { return }
-        Task {
+        let capturedTap = processingTap
+        Task { [weak item] in
+            guard let item else { return }
             do {
                 let tracks = try await item.asset.loadTracks(withMediaType: .audio)
                 guard let audioTrack = tracks.first else { return }
                 let params = AVMutableAudioMixInputParameters(track: audioTrack)
-                params.audioTapProcessor = processingTap
+                params.audioTapProcessor = capturedTap
                 let mix = AVMutableAudioMix()
                 mix.inputParameters = [params]
-                await MainActor.run { item.audioMix = mix }
+                let capturedMix = mix
+                await MainActor.run { item.audioMix = capturedMix }
             } catch {}
         }
     }
